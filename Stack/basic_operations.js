@@ -1,6 +1,9 @@
+/**
+ * Class for creating a new stack
+ */
 class Stack {
   /**
-   * Create a new stack.
+   * Create a new stack
    * @param {Array} items - The items to initialize the stack with
    */
   constructor(...items) {
@@ -71,8 +74,8 @@ class Stack {
    * @return {number} The index where the item is found in the stack
    */
   search(item) {
-    let length = this.stack.length;
-    for (let i = 0; i < length; i++) {
+    // let length = this.stack.length;
+    for (let i = 0; i < this.length(); i++) {
       if (this.stack[i] == item) {
         return i;
       }

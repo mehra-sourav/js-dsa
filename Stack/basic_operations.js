@@ -13,6 +13,8 @@ class Stack {
 
   /**
    * Adds a new item to the top of the stack
+   * !Time Complexity: O(n)
+   * !Space Complexity: O(1)
    * @param {number} item The new item to be added
    */
   push(item) {
@@ -21,6 +23,8 @@ class Stack {
 
   /**
    * Removes the item at the top of the stack and returns it
+   * !Time Complexity: O(1)
+   * !Space Complexity: O(1)
    * @return {number} The item at the top of the stack
    */
   pop() {
@@ -29,6 +33,8 @@ class Stack {
 
   /**
    * Returns the item at the top of the stack
+   * !Time Complexity: O(1)
+   * !Space Complexity: O(1)
    * @return {number} The item at the top of the stack
    */
   peek() {
@@ -37,6 +43,8 @@ class Stack {
 
   /**
    * Returns the size of the stack
+   * !Time Complexity: O(1)
+   * !Space Complexity: O(1)
    * @return {number} The size of the stack
    */
   length() {
@@ -45,12 +53,31 @@ class Stack {
 
   /**
    * Prints all the items in the stack
+   * !Time Complexity: O(n)
+   * !Space Complexity: O(1)
    */
   print() {
     let length = this.stack.length;
     for (let i = length - 1; i >= 0; i--) {
       console.log(`${this.stack[i]} `);
     }
+  }
+
+  /**
+   * Searches for a specific item in the stack
+   * !Time Complexity: O(n)
+   * !Space Complexity: O(1)
+   * @param {number} item The items that needs to be searched in the stack
+   * @return {number} The index where the item is found in the stack
+   */
+  search(item) {
+    let length = this.stack.length;
+    for (let i = 0; i < length; i++) {
+      if (this.stack[i] == item) {
+        return i;
+      }
+    }
+    return -1;
   }
 }
 
@@ -73,3 +100,6 @@ stack.print();
 
 console.log("\nItem at top of stack:", stack.peek());
 console.log("Length of stack:", stack.length());
+
+console.log("\n4 is present in stack at index:", stack.search(4));
+console.log("24 is present in stack at index:", stack.search(24));

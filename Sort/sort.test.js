@@ -1,5 +1,5 @@
-const { unsortedArrays, sortedArrays } = require("./arrays.js");
-const { bubbleSort, insertionSort, mergeSort } = require("./sort_functions.js");
+const { unsortedArrays, sortedArrays } = require("../arrays.js");
+const { bubbleSort, insertionSort, mergeSort } = require("./sortFunctions.js");
 
 const { arr1, arr2, arr3 } = unsortedArrays;
 

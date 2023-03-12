@@ -1,0 +1,14 @@
+{
+  "name": "search",
+  "version": "1.0.0",
+  "description": "Practicing searching algorithms",
+  "main": "searchFunctions.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^29.5.0"
+  }
+}

@@ -1,20 +1,21 @@
 /**
- * Class for creating a new node
+ * Class for creating a doubly linked list new node
  */
 class Node {
-  constructor(value, next = null) {
-    this.value = value;
+  constructor(val, prev = null, next = null) {
+    this.value = val;
+    this.prev = prev;
     this.next = next;
   }
 }
 
 /**
- * Class for creating a new singly linked list
+ * Class for creating a new doubly linked list
  */
-class SinglyLinkedList {
+class DoublyLinkedList {
   /**
    * Create a new linked list
-   * @param {Array} items - The items to initialize the linked list with
+   * @param {array} items - The items to initialize the linked list with
    */
   constructor(...items) {
     this.head = null;
@@ -22,23 +23,17 @@ class SinglyLinkedList {
     this.size = 0;
 
     items.forEach((item) => {
-      let newNode = new Node(item, null);
-
-      // If linked list is empty
-      if (!this.head) {
+      let newNode = new Node(item);
+      //   If linked list is empty
+      if (this.head == null) {
+        // this.head = this.tail = newNode;
         this.head = newNode;
         this.tail = this.head;
       } else {
-        let lastNode = this.tail;
-        if (lastNode == null) {
-          this.head = newNode;
-          this.tail = this.head;
-        } else {
-          lastNode.next = newNode;
-          this.tail = newNode;
-        }
+        this.tail.next = newNode;
+        newNode.prev = this.tail;
+        this.tail = newNode;
       }
-
       this.size++;
     });
   }
@@ -47,15 +42,15 @@ class SinglyLinkedList {
    * Adds a new node to the linked list at the first position
    * !Time Complexity: O(1)
    * !Space Complexity: O(1)
-   * @param {number} val The value of the new node that will be added
+   * @param {number} val - The value of the new node that will be added
    */
   prepend(val) {
-    const newNode = new Node(val);
+    let newNode = new Node(val);
 
-    // If linked list is empty
-    if (!this.head) {
-      this.head = newNode;
+    if (this.head == null) {
+      this.head = this.tail = newNode;
     } else {
+      this.head.prev = newNode;
       newNode.next = this.head;
       this.head = newNode;
     }
@@ -66,18 +61,18 @@ class SinglyLinkedList {
    * Adds a new node to the linked list at the last position
    * !Time Complexity: O(1) {O(1) here with tail pointer, else O(n) without tail}
    * !Space Complexity: O(1)
-   * @param {number} val The value of the new node that will be added
+   * @param {number} val - The value of the new node that will be added
    */
   append(val) {
-    const newNode = new Node(val);
+    let newNode = new Node(val);
 
-    // If linked list is empty
-    if (!this.head) {
-      this.head = newNode;
-      this.tail = this.head;
+    if (this.head == null) {
+      this.head = this.tail = newNode;
+      //   this.head = newNode;
+      //   this.tail = this.head;
     } else {
-      // Attaching the new node to the last node in the linked list
       this.tail.next = newNode;
+      newNode.prev = this.tail;
       this.tail = newNode;
     }
     this.size++;
@@ -91,21 +86,29 @@ class SinglyLinkedList {
    * @param {number} val The value of the new node that will be added
    */
   pushAt(idx, val) {
-    if (idx < 0 || idx > this.size) {
+    if (idx < 0 || idx > this.length()) {
       throw "Not allowed!! Index is not valid";
-    } else if (idx == 0) {
+    }
+    if (idx == 0) {
       this.prepend(val);
     } else if (idx == this.length() - 1) {
       this.append(val);
     } else {
+      //   let newNode = new Node(val);
       let temp = this.head;
-      const newNode = new Node(val);
 
       for (let i = 0; i < idx - 1; i++) {
         temp = temp.next;
       }
-      newNode.next = temp.next;
+
+      let newNode = new Node(val, temp, temp.next);
+
+      // Attaching node at idx to new node
+      newNode.next.prev = newNode;
+
+      // Attaching node at idx - 1 to new node
       temp.next = newNode;
+
       this.size++;
     }
   }
@@ -117,30 +120,32 @@ class SinglyLinkedList {
    * @param {number} idx The index from which the node will be removed
    */
   removeAt(idx) {
-    if (idx < 0 || idx > this.length() - 1) {
+    if (idx < 0 || idx >= this.length()) {
       throw "Not allowed!! Index is not valid";
     } else if (idx == 0) {
       // If linked list is not empty
       if (this.head != null) {
         this.head = this.head.next;
+
+        // If any node still exists in the list
+        if (this.head) {
+          this.head.prev = null;
+        }
       }
     } else if (idx == this.length() - 1) {
-      let temp = this.head;
-
-      // Iterating to the penultimate node
-      for (let i = 0; i < idx - 1 - 1; i++) {
-        temp = temp.next;
-      }
-
-      temp.next = null;
-      this.tail = temp;
+      this.tail = this.tail.prev;
+      this.tail.next = null;
     } else {
       let temp = this.head;
+
       for (let i = 0; i < idx - 1; i++) {
         temp = temp.next;
       }
+
       temp.next = temp.next.next;
+      temp.next.prev = temp;
     }
+
     this.size--;
   }
 
@@ -153,15 +158,26 @@ class SinglyLinkedList {
    * value is present
    */
   search(val) {
-    let temp = this.head,
-      idx = 0;
-    while (temp) {
-      if (temp.value == val) {
-        return idx;
+    let start = 0,
+      end = this.length() - 1,
+      tempStart = this.head,
+      tempEnd = this.tail;
+
+    while (start <= end) {
+      if (tempStart.value == val) {
+        return start;
       }
-      temp = temp.next;
-      idx++;
+
+      if (tempEnd.value == val) {
+        return end;
+      }
+
+      start++;
+      end--;
+      tempStart = tempStart.next;
+      tempEnd = tempEnd.prev;
     }
+
     return -1;
   }
 
@@ -174,13 +190,39 @@ class SinglyLinkedList {
     let prev = null,
       curr = this.head;
 
+    this.tail = curr;
+
     while (curr) {
       let next = curr.next;
       curr.next = prev;
+      curr.prev = next;
+
       prev = curr;
       curr = next;
     }
     this.head = prev;
+  }
+
+  //   1 2 3 4 5
+
+  /**
+   * Prints all the items in the linked list
+   * !Time Complexity: O(n)
+   * !Space Complexity: O(1)
+   */
+  print() {
+    let temp = this.head,
+      res = [];
+
+    if (this.length() == 0) {
+      console.log("List: ", null);
+    } else {
+      while (temp) {
+        res.push(temp.value);
+        temp = temp.next;
+      }
+      console.log("List: ", res.join(" <=> "));
+    }
   }
 
   /**
@@ -191,51 +233,49 @@ class SinglyLinkedList {
   length() {
     return this.size;
   }
-
-  /**
-   * Prints all the items in the linked list
-   * !Time Complexity: O(n)
-   * !Space Complexity: O(1)
-   */
-  print() {
-    let res = [];
-    let temp = this.head;
-
-    if (this.length() == 0) {
-      console.log("List: ", null);
-    } else {
-      while (temp) {
-        res.push(temp.value);
-        temp = temp.next;
-      }
-      console.log("List: ", res.join(" --> "));
-    }
-  }
 }
 
-const list = new SinglyLinkedList(1, 2, 3, 4, 5);
+const list = new DoublyLinkedList(1, 2, 3, 4, 5);
 
 list.print();
 console.log("Length of list:", list.length());
-list.append(21);
+
+console.log("\nPrepending 53");
 list.prepend(53);
-list.pushAt(2, 1.5);
+console.log("Appending 21");
+list.append(21);
 
+console.log("\n");
 list.print();
 console.log("Length of list:", list.length());
 
+console.log("\nPushing 12 at index 0");
+list.pushAt(0, 12);
+console.log("Pushing 57 at index len - 1");
+list.pushAt(list.length() - 1, 57);
+console.log("Pushing 987 at index 3");
+list.pushAt(3, 987);
+
+console.log("\n");
+list.print();
+console.log("Length of list:", list.length());
+
+console.log("\nRemoving node at index 0");
 list.removeAt(0);
+console.log("Removing node at index len - 1");
+list.removeAt(list.length() - 1);
+console.log("Removing node at index 3");
+list.removeAt(3);
 
+console.log("\n");
 list.print();
 console.log("Length of list:", list.length());
 
-console.log("Index of 3.4 in the list:", list.search(3.4));
-console.log("Index of 1 in the list:", list.search(1));
+console.log("\nIndex of 3.4 in the list:", list.search(3.4));
+console.log("Index of 987 in the list:", list.search(987));
+console.log("Index of 21 in the list:", list.search(21));
 
-list.print();
-console.log("Length of list:", list.length());
-
-console.log("Reversing the list");
+console.log("\nReversing the list");
 list.reverse();
 list.print();
 console.log("Length of list:", list.length());

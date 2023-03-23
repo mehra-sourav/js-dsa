@@ -16,14 +16,7 @@ class BST {
   constructor(...items) {
     this.root = null;
 
-    items?.forEach((item) => {
-      let newNode = new Node(item);
-      if (this.root == null) {
-        this.root = newNode;
-      } else {
-        this.root = this.insertNode(this.root, item);
-      }
-    });
+    items?.forEach((item) => this.insertNode(item));
   }
 
   /**
@@ -32,24 +25,27 @@ class BST {
    * !Space Complexity: O(1)
    * @param {Node} root - The root node of the tree where the new node
    * will be inserted
-   * @param {number} val - The value of the new node that will be inserted
+   * @param {number} value - The value of the new node that will be inserted
    */
-  insertNode(root, val) {
-    if (root == null) {
-      return new Node(val);
-    }
+  insertNode(value) {
+    const insertNodeHelper = (root, val) => {
+      if (root == null) {
+        return new Node(val);
+      }
 
-    if (root.value < val) {
-      root.right = this.insertNode(root.right, val);
-    } else if (root.value > val) {
-      root.left = this.insertNode(root.left, val);
-    }
+      if (root.value < val) {
+        root.right = insertNodeHelper(root.right, val);
+      } else if (root.value > val) {
+        root.left = insertNodeHelper(root.left, val);
+      }
 
-    return root;
+      return root;
+    };
+    this.root = insertNodeHelper(this.root, value);
   }
 
   /**
-   * Traverses a binary search tree using breadth first search algorithm
+   * Traverses the binary search tree using breadth first search algorithm
    * !Time Complexity: O(n)
    * !Space Complexity: O(1)
    */
@@ -82,7 +78,7 @@ class BST {
   }
 
   /**
-   * Traverses a binary search tree using preorder algorithm
+   * Traverses the binary search tree using preorder algorithm
    * !Time Complexity: O(n)
    * !Space Complexity: O(1)
    */
@@ -102,7 +98,7 @@ class BST {
   }
 
   /**
-   * Traverses a binary search tree using inorder algorithm
+   * Traverses the binary search tree using inorder algorithm
    * !Time Complexity: O(n)
    * !Space Complexity: O(1)
    */
@@ -122,7 +118,7 @@ class BST {
   }
 
   /**
-   * Traverses a binary search tree using postorder algorithm
+   * Traverses the binary search tree using postorder algorithm
    * !Time Complexity: O(n)
    * !Space Complexity: O(1)
    */
@@ -141,22 +137,132 @@ class BST {
     console.log("Postorder traversal:", postOrderTraversalHelper(this.root));
   }
 
+  /**
+   * Finds the node with the provided value in the binary search tree
+   * !Time Complexity: O(logn)
+   * !Space Complexity: O(1)
+   * @param {number} val The value of the node which needs to be searched for
+   * @returns {(Node|null)} The node with the provided value as its value or null
+   */
+  search(val) {
+    const searchHelper = (root, val) => {
+      if (root == null) {
+        return null;
+      }
+
+      if (root.value < val) {
+        return searchHelper(root.right, val);
+      } else if (root.value > val) {
+        return searchHelper(root.left, val);
+      } else {
+        return root;
+      }
+    };
+
+    let node = searchHelper(this.root, val);
+    if (node) {
+      console.log("Node found!!:", node);
+    } else {
+      console.log("Node not found!!");
+    }
+  }
+
+  /**
+   * Finds the smallest node in a binary search tree given its root node
+   * !Time Complexity: O(logn)
+   * !Space Complexity: O(1)
+   * @param {Node} root - The root node of the tree whose smallest node needs
+   * to be found
+   * @returns {Node} The smallest node of the tree whose root node was given
+   */
+  findSmallestNode(root) {
+    while (root?.left) {
+      root = root.left;
+    }
+    return root;
+  }
+
+  /**
+   * Removes a node from the binary search tree
+   * !Time Complexity: O(logn)
+   * !Space Complexity: O(1)
+   * @param {Node} root - The root node of the tree from which node will be
+   * deleted
+   * @param {number} val - The value of the node that will be deleted
+   */
+  removeNode(value) {
+    const removeNodeHelper = (root, val) => {
+      // Return root if it's null
+      if (root == null) {
+        return root;
+      }
+
+      // Delete from right subtree
+      if (root.value < val) {
+        root.right = removeNodeHelper(root.right, val);
+      }
+      // Delete from left subtree
+      else if (root.value > val) {
+        root.left = removeNodeHelper(root.left, val);
+      }
+      // Node found
+      else {
+        // Case 1 (Node to be deleted is a leaf node)
+        if (root.left == null && root.right == null) {
+          root = null;
+        }
+        // Case 2 (Node to be deleted has no left subtree)
+        else if (root.left == null) {
+          root = root.right;
+        }
+        // Case 2 (Node to be deleted has no right subtree)
+        else if (root.right == null) {
+          root = root.left;
+        }
+        // Case 3 (Node to be deleted has subtrees on both sides)
+        else {
+          // Find a replacement node (smallest node in right subtree or
+          // largest node in left subtree)
+          let replacementNode = this.findSmallestNode(root.right);
+
+          // Replace to be deleted node's value with replacement node's value
+          root.value = replacementNode.value;
+
+          // Delete replacement node from the right subtree
+          root.right = removeNodeHelper(root.right, val);
+        }
+      }
+      return root;
+    };
+
+    this.root = removeNodeHelper(this.root, value);
+  }
+
   // insert --> done
   // bfs --> done
   // preorder --> done
   // inorder --> done
   // postorder --> done
-  // remove
-  // search
+  // search --> done
+  // remove --> done
+  // avl transformations left
 }
 
-// const tree = new BST(1, 2, 3, 4, 5);
 /*
         3
     1       4
         2       5
 */
+
 const tree = new BST(3, 1, 2, 4, 5);
+
+tree.bfsTraversal();
+tree.preOrderTraversal(tree.root);
+tree.inOrderTraversal(tree.root);
+tree.postOrderTraversal(tree.root);
+tree.search(4);
+
+tree.removeNode(4);
 
 tree.bfsTraversal();
 tree.preOrderTraversal(tree.root);

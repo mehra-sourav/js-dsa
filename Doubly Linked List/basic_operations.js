@@ -153,7 +153,7 @@ class DoublyLinkedList {
    * Searches for a node with a specified value in the linked list
    * !Time Complexity: O(n)
    * !Space Complexity: O(1)
-   * @param {number} val The value of the new node that needs to be searched
+   * @param {number} val The value of the new node that needs to be searched for
    * @returns {number} The index of the linked list where the node with the
    * value is present
    */

@@ -17,8 +17,8 @@ class Graph {
    */
   addVertex(value) {
     // Adding vertex to the graph if it doesn't already exist
-    if (!this.doesVertexExist(value)) {
-      this.adjacencyList[value] = [];
+    if (!this.adjacencyList[value]) {
+      this.adjacencyList[value] = new Set();
     }
   }
 
@@ -32,7 +32,7 @@ class Graph {
     let neighbourNodes = this.adjacencyList[value];
 
     // Removing the node from it's neighbours' adjacency lists
-    neighbourNodes?.forEach((node) => this.removeEdge(value, node));
+    neighbourNodes?.forEach((node) => this.removeEdge(node, value));
 
     // Deleting the node
     delete this.adjacencyList[value];
@@ -49,24 +49,17 @@ class Graph {
    */
   addEdge(sourceVertex, destVertex) {
     // Adding sourceVertex if it doesn't exist
-    if (!this.doesVertexExist(sourceVertex)) {
-      this.addVertex(sourceVertex);
-    }
+    this.addVertex(sourceVertex);
+
     // Adding destVertex if it doesn't exist
-    if (!this.doesVertexExist(destVertex)) {
-      this.addVertex(destVertex);
-    }
+    this.addVertex(destVertex);
 
     // Adding an edge between the two
-    this.adjacencyList[sourceVertex] = [
-      ...new Set([...this.adjacencyList[sourceVertex], destVertex]),
-    ];
+    this.adjacencyList[sourceVertex].add(destVertex);
 
     // Adding edge from destination to source if the graph is undirected
     if (!this.isDirectedGraph) {
-      this.adjacencyList[destVertex] = [
-        ...new Set([...this.adjacencyList[destVertex], sourceVertex]),
-      ];
+      this.adjacencyList[destVertex].add(sourceVertex);
     }
   }
 
@@ -80,19 +73,9 @@ class Graph {
    * ends
    */
   removeEdge(sourceVertex, destVertex) {
-    // Filtering out the destination vertex from the adjacency list of the
+    // Deleting the destination vertex from the adjacency list of the
     // source vertex
-    this.adjacencyList[sourceVertex] = this.adjacencyList[sourceVertex].filter(
-      (v) => v != destVertex
-    );
-
-    // Filtering out the source vertex from the adjacency list of the
-    // destination vertex if the graph is undirected
-    if (!this.isDirectedGraph) {
-      this.adjacencyList[destVertex] = this.adjacencyList[destVertex].filter(
-        (v) => v != sourceVertex
-      );
-    }
+    this.adjacencyList[sourceVertex].delete(destVertex);
   }
 
   /**
@@ -161,18 +144,6 @@ class Graph {
       // Marking the current node as visited;
       visitedNodes.add(key);
     }
-  }
-
-  /**
-   * Checks if a particular vertex exists in the graph
-   * !Time Complexity: O(1)
-   * !Space Complexity: O(1)
-   * @param {number} value - The value of the vertex whose presence needs to be
-   * checked
-   * @returns {number} If the vertex exists in the graph or not
-   */
-  doesVertexExist(value) {
-    return Object.keys(this.adjacencyList).includes(value.toString());
   }
 
   /**

@@ -91,7 +91,10 @@ class Graph {
     while (queue.length) {
       // Popping out an item from queue
       let currentNode = queue.shift();
-      // console.log(currentNode);
+
+      let currentNodeKey = currentNode.toString();
+      if (visitedNodes.has(currentNodeKey)) continue;
+      
       process.stdout.write(`${currentNode} `);
 
       // Extracting the neighbours of the current node
@@ -105,10 +108,9 @@ class Graph {
         }
       });
 
-      let key = currentNode.toString();
 
       // Marking the current node as visited;
-      visitedNodes.add(key);
+      visitedNodes.add(currentNodeKey);
     }
   }
 
@@ -125,6 +127,9 @@ class Graph {
     while (stack.length) {
       // Popping out an item from stack
       let currentNode = stack.pop();
+      let currentNodeKey = currentNode.toString();
+
+      if (visitedNodes.has(currentNodeKey)) continue;
 
       process.stdout.write(`${currentNode} `);
 
@@ -139,10 +144,10 @@ class Graph {
         }
       });
 
-      let key = currentNode.toString();
+      
 
       // Marking the current node as visited;
-      visitedNodes.add(key);
+      visitedNodes.add(currentNodeKey);
     }
   }
 
@@ -173,3 +178,5 @@ console.log("BFS Traversal:");
 graph.bfsTraversal();
 console.log("\n\nDFS Traversal:");
 graph.dfsTraversal();
+
+

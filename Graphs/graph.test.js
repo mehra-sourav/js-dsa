@@ -300,6 +300,63 @@ function runGraphTests(GraphClass) {
         expect(result).toEqual(false);
       });
     });
+
+    describe("Helper Methods", () => {
+      it("should return the correct size (number of vertices) of the graph", () => {
+        const graph = new GraphClass(false, 1, 2, 3);
+        expect(graph.size()).toEqual(3);
+
+        graph.addVertex(4);
+        expect(graph.size()).toEqual(4);
+
+        graph.removeVertex(2);
+        expect(graph.size()).toEqual(3);
+      });
+
+      it("should return all vertices as strings", () => {
+        const graph = new GraphClass(false, 1, 2);
+        const vertices = graph.getVertices();
+
+        expect(vertices).toEqual(expect.arrayContaining(["1", "2"]));
+      });
+
+      it("should correctly check vertex existence", () => {
+        const graph = new GraphClass(false);
+        graph.addVertex(5);
+
+        expect(graph.hasVertex(5)).toBe(true);
+        expect(graph.hasVertex(10)).toBe(false);
+      });
+
+      it("should correctly check edge existence", () => {
+        const graph = new GraphClass(false, 1, 2);
+        graph.addEdge(1, 2);
+
+        expect(graph.hasEdge(1, 2)).toBe(true);
+        expect(graph.hasEdge(2, 1)).toBe(true);
+        expect(graph.hasEdge(1, 3)).toBe(false);
+        expect(graph.hasEdge(3, 1)).toBe(false);
+      });
+
+      it("should return the neighbours set correctly", () => {
+        const graph = new GraphClass(false, 1, 2, 3);
+        graph.addEdge(1, 2);
+        graph.addEdge(1, 3);
+
+        const neighbours = graph.getNeighbours(1);
+
+        expect(neighbours.has(2)).toBe(true);
+        expect(neighbours.has(3)).toBe(true);
+      });
+
+      it("should correctly report if the graph is directed", () => {
+        const undirectedGraph = new GraphClass(false);
+        expect(undirectedGraph.isDirected()).toBe(false);
+
+        const directedGraph = new GraphClass(true);
+        expect(directedGraph.isDirected()).toBe(true);
+      });
+    });
   });
 }
 

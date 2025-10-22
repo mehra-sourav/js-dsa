@@ -13,143 +13,172 @@ class Graph {
    * Inserts a new vertex to the graph
    * !Time Complexity: O(1)
    * !Space Complexity: O(1)
-   * @param {number} value - The value of the new vertex that will be inserted
+   * @param {number} value - The value of the new vertex to insert.
+   * @returns {number|false} The vertex value if added; otherwise, false if already present.
    */
   addVertex(value) {
-    // Adding vertex to the graph if it doesn't already exist
-    if (!this.adjacencyList[value]) {
-      this.adjacencyList[value] = new Set();
+    if (this.adjacencyList.hasOwnProperty(value)) {
+      return false;
     }
+
+    this.adjacencyList[value] = new Set();
+
+    return value;
   }
 
   /**
    * Removes a vertex from the graph
-   * !Time Complexity: O(1)
+   * !Time Complexity: O(V)
    * !Space Complexity: O(1)
-   * @param {number} value - The value of the vertex that will be removed
+   * @param {number} value - The vertex to remove.
+   * @returns {number|false} The vertex if removed; false if it does not exist.
    */
   removeVertex(value) {
+    if (!this.adjacencyList.hasOwnProperty(value)) {
+      return false;
+    }
+
     let neighbourNodes = this.adjacencyList[value];
 
     // Removing the node from it's neighbours' adjacency lists
     neighbourNodes?.forEach((node) => this.removeEdge(node, value));
 
-    // Deleting the node
     delete this.adjacencyList[value];
+
+    return value;
   }
 
   /**
    * Adds an edge between the two provided vertices
-   * !Time Complexity: O(n)
+   * !Time Complexity: O(1)
    * !Space Complexity: O(1)
    * @param {number} sourceVertex - The value of the vertex where the edge
    * starts from
    * @param {number} destVertex - The value of the vertex where the edge
    * ends
+   * @returns {Array|false} Edge endpoints if added; false if edge already exists.
    */
-  addEdge(sourceVertex, destVertex) {
-    // Adding sourceVertex if it doesn't exist
-    this.addVertex(sourceVertex);
-
-    // Adding destVertex if it doesn't exist
-    this.addVertex(destVertex);
-
-    // Adding an edge between the two
-    this.adjacencyList[sourceVertex].add(destVertex);
-
-    // Adding edge from destination to source if the graph is undirected
-    if (!this.isDirectedGraph) {
-      this.adjacencyList[destVertex].add(sourceVertex);
+  addEdge(source, destination) {
+    // Adding missing vertices
+    if (!this.adjacencyList.hasOwnProperty(source)) {
+      this.adjacencyList[source] = new Set();
     }
+
+    if (!this.adjacencyList.hasOwnProperty(destination)) {
+      this.adjacencyList[destination] = new Set();
+    }
+
+    // Early return if edge already exists
+    if (this.adjacencyList[source].has(destination)) {
+      return false;
+    }
+
+    this.adjacencyList[source].add(destination);
+
+    if (!this.isDirected()) {
+      this.adjacencyList[destination].add(source);
+    }
+
+    return [source, destination];
   }
 
   /**
    * Removes the edge(s) between the two provided vertices
-   * !Time Complexity: O(??) n?
+   * !Time Complexity: O(1)
    * !Space Complexity: O(1)
    * @param {number} sourceVertex - The value of the vertex where the edge
    * starts from
    * @param {number} destVertex - The value of the vertex where the edge
    * ends
+   * @returns {Array|false} Edge endpoints if removed; false if edge did not exist.
    */
-  removeEdge(sourceVertex, destVertex) {
-    // Deleting the destination vertex from the adjacency list of the
-    // source vertex
-    this.adjacencyList[sourceVertex].delete(destVertex);
-  }
-
-  /**
-   * Traverses the graph using breadth first search algorithm
-   * !Time Complexity: O(n)
-   * !Space Complexity: O(1)
-   */
-  bfsTraversal() {
-    let startNode = Object.keys(this.adjacencyList)[0];
-    let queue = [startNode];
-    let visitedNodes = new Set();
-
-    while (queue.length) {
-      // Popping out an item from queue
-      let currentNode = queue.shift();
-
-      let currentNodeKey = currentNode.toString();
-      if (visitedNodes.has(currentNodeKey)) continue;
-      
-      process.stdout.write(`${currentNode} `);
-
-      // Extracting the neighbours of the current node
-      let currentNodeNeighbours = this.adjacencyList[currentNode];
-      currentNodeNeighbours?.forEach((node) => {
-        let key = node.toString();
-
-        // Adding the neighbour node to the queue only if it's not visited
-        if (!visitedNodes.has(key)) {
-          queue.push(node);
-        }
-      });
-
-
-      // Marking the current node as visited;
-      visitedNodes.add(currentNodeKey);
+  removeEdge(source, destination) {
+    if (
+      !this.adjacencyList.hasOwnProperty(source) ||
+      !this.adjacencyList.hasOwnProperty(destination) ||
+      !this.adjacencyList[source].has(destination)
+    ) {
+      return false;
     }
-  }
 
-  /**
-   * Traverses the graph using depth first search algorithm
-   * !Time Complexity: O(n)
-   * !Space Complexity: O(1)
-   */
-  dfsTraversal() {
-    let startNode = Object.keys(this.adjacencyList)[0];
-    let stack = [startNode];
-    let visitedNodes = new Set();
+    this.adjacencyList[source].delete(destination);
 
-    while (stack.length) {
-      // Popping out an item from stack
-      let currentNode = stack.pop();
-      let currentNodeKey = currentNode.toString();
-
-      if (visitedNodes.has(currentNodeKey)) continue;
-
-      process.stdout.write(`${currentNode} `);
-
-      // Extracting the neighbours of the current node
-      let currentNodeNeighbours = this.adjacencyList[currentNode];
-      currentNodeNeighbours?.forEach((node) => {
-        let key = node.toString();
-
-        // Adding the neighbour node to the stack only if it's not visited
-        if (!visitedNodes.has(key)) {
-          stack.push(key);
-        }
-      });
-
-      
-
-      // Marking the current node as visited;
-      visitedNodes.add(currentNodeKey);
+    if (!this.isDirected()) {
+      this.adjacencyList[destination].delete(source);
     }
+
+    return [source, destination];
   }
+
+  // /**
+  //  * Traverses the graph using breadth first search algorithm
+  //  * !Time Complexity: O(n)
+  //  * !Space Complexity: O(1)
+  //  */
+  // bfsTraversal() {
+  //   let startNode = Object.keys(this.adjacencyList)[0];
+  //   let queue = [startNode];
+  //   let visitedNodes = new Set();
+
+  //   while (queue.length) {
+  //     // Popping out an item from queue
+  //     let currentNode = queue.shift();
+
+  //     let currentNodeKey = currentNode.toString();
+  //     if (visitedNodes.has(currentNodeKey)) continue;
+
+  //     process.stdout.write(`${currentNode} `);
+
+  //     // Extracting the neighbours of the current node
+  //     let currentNodeNeighbours = this.adjacencyList[currentNode];
+  //     currentNodeNeighbours?.forEach((node) => {
+  //       let key = node.toString();
+
+  //       // Adding the neighbour node to the queue only if it's not visited
+  //       if (!visitedNodes.has(key)) {
+  //         queue.push(node);
+  //       }
+  //     });
+
+  //     // Marking the current node as visited;
+  //     visitedNodes.add(currentNodeKey);
+  //   }
+  // }
+
+  // /**
+  //  * Traverses the graph using depth first search algorithm
+  //  * !Time Complexity: O(n)
+  //  * !Space Complexity: O(1)
+  //  */
+  // dfsTraversal() {
+  //   let startNode = Object.keys(this.adjacencyList)[0];
+  //   let stack = [startNode];
+  //   let visitedNodes = new Set();
+
+  //   while (stack.length) {
+  //     // Popping out an item from stack
+  //     let currentNode = stack.pop();
+  //     let currentNodeKey = currentNode.toString();
+
+  //     if (visitedNodes.has(currentNodeKey)) continue;
+
+  //     process.stdout.write(`${currentNode} `);
+
+  //     // Extracting the neighbours of the current node
+  //     let currentNodeNeighbours = this.adjacencyList[currentNode];
+  //     currentNodeNeighbours?.forEach((node) => {
+  //       let key = node.toString();
+
+  //       // Adding the neighbour node to the stack only if it's not visited
+  //       if (!visitedNodes.has(key)) {
+  //         stack.push(key);
+  //       }
+  //     });
+
+  //     // Marking the current node as visited;
+  //     visitedNodes.add(currentNodeKey);
+  //   }
+  // }
 
   /**
    * Returns the number of nodes in the graph
@@ -160,23 +189,64 @@ class Graph {
   size() {
     return Object.keys(this.adjacencyList).length;
   }
+
+  /**
+   * Returns a list of nodes in the graph
+   * !Time Complexity: O(1)
+   * !Space Complexity: O(1)
+   * @returns {string[]} Array of vertex keys as strings
+   */
+  getVertices() {
+    return Object.keys(this.adjacencyList);
+  }
+
+  /**
+   * Checks if the graph has a certain vertex
+   * !Time Complexity: O(1)
+   * !Space Complexity: O(1)
+   * @param {number} node - The value of the vertex whose presence needs to be checked
+   * @returns {boolean}
+   */
+  hasVertex(node) {
+    return this.adjacencyList.hasOwnProperty(node);
+  }
+
+  /**
+   * Checks if an edge exists from source vertex to destination vertex
+   * !Time Complexity: O(1)
+   * !Space Complexity: O(1)
+   * @param {number} source - The starting vertex of the edge
+   * @param {number} destination - The ending vertex of the edge
+   * @returns {boolean} True if the edge exists, false otherwise
+   */
+  hasEdge(source, destination) {
+    if (!this.hasVertex(source) || !this.hasVertex(destination)) {
+      return false;
+    }
+
+    return this.adjacencyList[source].has(destination);
+  }
+
+  /**
+   * Returns the set containing the neighbours of a vertex
+   * !Time Complexity: O(1)
+   * !Space Complexity: O(1)
+   * @param {number} value - The value of the vertex whose neighbours needs to be returned
+   * @returns {Set}  Set of neighbors
+   */
+  getNeighbours(value) {
+    return this.adjacencyList[value];
+  }
+
+  /**
+   * Returns if the graph is directed or not
+   * !Time Complexity: O(1)
+   * !Space Complexity: O(1)
+   * @returns {boolean}
+   */
+  isDirected() {
+    return this.isDirectedGraph;
+  }
 }
 
-const graph = new Graph(false, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
-
-graph.addEdge(1, 2);
-graph.addEdge(1, 3);
-graph.addEdge(1, 4);
-graph.addEdge(2, 5);
-graph.addEdge(3, 6);
-graph.addEdge(3, 7);
-graph.addEdge(4, 8);
-graph.addEdge(5, 9);
-graph.addEdge(6, 10);
-
-console.log("BFS Traversal:");
-graph.bfsTraversal();
-console.log("\n\nDFS Traversal:");
-graph.dfsTraversal();
-
-
+module.exports = Graph;

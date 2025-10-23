@@ -1,4 +1,4 @@
-class Graph {
+class AdjacencyMatrixGraph {
   constructor(...items) {
     this.isDirectedGraph = items[0] ?? false;
     this.vertices = items.slice(1) ?? [];
@@ -203,4 +203,4 @@ class Graph {
   }
 }
 
-module.exports = Graph;
+module.exports = AdjacencyMatrixGraph;

@@ -1,7 +1,7 @@
 /**
  * Class for creating a new graph
  */
-class Graph {
+class AdjacencyListGraph {
   constructor(...items) {
     this.adjacencyList = {};
     this.isDirectedGraph = items[0] ?? false;
@@ -249,4 +249,4 @@ class Graph {
   }
 }
 
-module.exports = Graph;
+module.exports = AdjacencyListGraph;

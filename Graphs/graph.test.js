@@ -1,4 +1,5 @@
 const AdjListGraph = require("./adjacencyList");
+const AdjMatrixGraph = require("./adjacencyMatrix");
 
 function runGraphTests(GraphClass) {
   describe(`Graph tests for ${GraphClass.name}`, () => {
@@ -191,10 +192,10 @@ function runGraphTests(GraphClass) {
       it("should add edges bidirectionally for undirected graphs", () => {
         const graph = new GraphClass(false, 1, 2);
 
+        graph.addEdge(1, 2);
+
         const neighbours1 = graph.getNeighbours(1);
         const neighbours2 = graph.getNeighbours(2);
-
-        graph.addEdge(1, 2);
 
         expect(neighbours1.has(2)).toBe(true);
         expect(neighbours2.has(1)).toBe(true);
@@ -203,10 +204,10 @@ function runGraphTests(GraphClass) {
       it("should add edges in one direction for directed graphs", () => {
         const graph = new GraphClass(true, 1, 2);
 
+        graph.addEdge(1, 2);
+
         const neighbours1 = graph.getNeighbours(1);
         const neighbours2 = graph.getNeighbours(2);
-
-        graph.addEdge(1, 2);
 
         expect(neighbours1.has(2)).toBe(true);
         expect(neighbours2.has(1)).toBe(false);
@@ -361,3 +362,4 @@ function runGraphTests(GraphClass) {
 }
 
 runGraphTests(AdjListGraph);
+runGraphTests(AdjMatrixGraph);

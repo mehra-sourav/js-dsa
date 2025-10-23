@@ -52,9 +52,9 @@ class Graph {
    * Adds an edge between the two provided vertices
    * !Time Complexity: O(1)
    * !Space Complexity: O(1)
-   * @param {number} sourceVertex - The value of the vertex where the edge
+   * @param {number} source - The value of the vertex where the edge
    * starts from
-   * @param {number} destVertex - The value of the vertex where the edge
+   * @param {number} destination - The value of the vertex where the edge
    * ends
    * @returns {Array|false} Edge endpoints if added; false if edge already exists.
    */
@@ -86,9 +86,9 @@ class Graph {
    * Removes the edge(s) between the two provided vertices
    * !Time Complexity: O(1)
    * !Space Complexity: O(1)
-   * @param {number} sourceVertex - The value of the vertex where the edge
+   * @param {number} source - The value of the vertex where the edge
    * starts from
-   * @param {number} destVertex - The value of the vertex where the edge
+   * @param {number} destination - The value of the vertex where the edge
    * ends
    * @returns {Array|false} Edge endpoints if removed; false if edge did not exist.
    */

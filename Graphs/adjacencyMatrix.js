@@ -9,6 +9,13 @@ class Graph {
     );
   }
 
+  /**
+   * Inserts a new vertex to the graph
+   * !Time Complexity: O(V^2)
+   * !Space Complexity: O(V^2)
+   * @param {number} value - The value of the new vertex to insert.
+   * @returns {number|false} The vertex value if added; otherwise, false if already present.
+   */
   addVertex(value) {
     if (this.hasVertex(value)) {
       return false;
@@ -23,6 +30,13 @@ class Graph {
     return value;
   }
 
+  /**
+   * Removes a vertex from the graph
+   * !Time Complexity: O(V^2)
+   * !Space Complexity: O(V^2)
+   * @param {number} value - The vertex to remove.
+   * @returns {number|false} The vertex if removed; false if it does not exist.
+   */
   removeVertex(value) {
     if (!this.hasVertex(value)) {
       return false;
@@ -42,6 +56,16 @@ class Graph {
     return value;
   }
 
+  /**
+   * Adds an edge between the two provided vertices
+   * !Time Complexity: O(1)
+   * !Space Complexity: O(1)
+   * @param {number} sourceVertex - The value of the vertex where the edge
+   * starts from
+   * @param {number} destination - The value of the vertex where the edge
+   * ends
+   * @returns {Array|false} Edge endpoints if added; false if edge already exists.
+   */
   addEdge(source, destination) {
     if (!this.hasVertex(source)) {
       this.addVertex(source);
@@ -67,6 +91,16 @@ class Graph {
     return [source, destination];
   }
 
+  /**
+   * Removes the edge(s) between the two provided vertices
+   * !Time Complexity: O(1)
+   * !Space Complexity: O(1)
+   * @param {number} sourceVertex - The value of the vertex where the edge
+   * starts from
+   * @param {number} destination - The value of the vertex where the edge
+   * ends
+   * @returns {Array|false} Edge endpoints if removed; false if edge did not exist.
+   */
   removeEdge(source, destination) {
     if (
       !this.hasVertex(source) ||
@@ -88,12 +122,19 @@ class Graph {
     return [source, destination];
   }
 
-  getNeighbours(node) {
-    if (!this.hasVertex(node)) {
+  /**
+   * Returns the set containing the neighbours of a vertex
+   * !Time Complexity: O(1)
+   * !Space Complexity: O(1)
+   * @param {number} value - The value of the vertex whose neighbours needs to be returned
+   * @returns {Set}  Set of neighbors
+   */
+  getNeighbours(value) {
+    if (!this.hasVertex(value)) {
       return new Set();
     }
 
-    const nodeIdx = this.vertexIndexMap.get(node);
+    const nodeIdx = this.vertexIndexMap.get(value);
     const results = this.adjacencyMatrix[nodeIdx]
       .map((v, i) => (v === 1 ? this.vertices[i] : null))
       .filter(Boolean);
@@ -101,18 +142,45 @@ class Graph {
     return new Set(results);
   }
 
+  /**
+   * Returns a list of nodes in the graph
+   * !Time Complexity: O(V)
+   * !Space Complexity: O(1)
+   * @returns {string[]} Array of vertex keys as strings
+   */
   getVertices() {
     return this.vertices.map(String);
   }
 
+  /**
+   * Returns if the graph is directed or not
+   * !Time Complexity: O(1)
+   * !Space Complexity: O(1)
+   * @returns {boolean}
+   */
   isDirected() {
     return this.isDirectedGraph;
   }
 
+  /**
+   * Checks if the graph has a certain vertex
+   * !Time Complexity: O(1)
+   * !Space Complexity: O(1)
+   * @param {number} node - The value of the vertex whose presence needs to be checked
+   * @returns {boolean}
+   */
   hasVertex(node) {
-    return this.vertices.indexOf(node) >= 0;
+    return this.vertexIndexMap.has(node);
   }
 
+  /**
+   * Checks if an edge exists from source vertex to destination vertex
+   * !Time Complexity: O(1)
+   * !Space Complexity: O(1)
+   * @param {number} source - The starting vertex of the edge
+   * @param {number} destination - The ending vertex of the edge
+   * @returns {boolean} True if the edge exists, false otherwise
+   */
   hasEdge(source, destination) {
     if (!this.hasVertex(source) || !this.hasVertex(destination)) {
       return false;
@@ -124,6 +192,12 @@ class Graph {
     return !!this.adjacencyMatrix[sourceIdx][destinationIdx];
   }
 
+  /**
+   * Returns the number of nodes in the graph
+   * !Time Complexity: O(1)
+   * !Space Complexity: O(1)
+   * @returns {number} The number of nodes in the graph
+   */
   size() {
     return this.vertices.length;
   }

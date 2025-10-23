@@ -17,7 +17,7 @@ class Graph {
    * @returns {number|false} The vertex value if added; otherwise, false if already present.
    */
   addVertex(value) {
-    if (this.adjacencyList.hasOwnProperty(value)) {
+    if (this.hasVertex(value)) {
       return false;
     }
 
@@ -34,7 +34,7 @@ class Graph {
    * @returns {number|false} The vertex if removed; false if it does not exist.
    */
   removeVertex(value) {
-    if (!this.adjacencyList.hasOwnProperty(value)) {
+    if (!this.hasVertex(value)) {
       return false;
     }
 
@@ -60,16 +60,16 @@ class Graph {
    */
   addEdge(source, destination) {
     // Adding missing vertices
-    if (!this.adjacencyList.hasOwnProperty(source)) {
+    if (!this.hasVertex(source)) {
       this.adjacencyList[source] = new Set();
     }
 
-    if (!this.adjacencyList.hasOwnProperty(destination)) {
+    if (!this.hasVertex(destination)) {
       this.adjacencyList[destination] = new Set();
     }
 
     // Early return if edge already exists
-    if (this.adjacencyList[source].has(destination)) {
+    if (this.hasEdge(source, destination)) {
       return false;
     }
 
@@ -94,9 +94,9 @@ class Graph {
    */
   removeEdge(source, destination) {
     if (
-      !this.adjacencyList.hasOwnProperty(source) ||
-      !this.adjacencyList.hasOwnProperty(destination) ||
-      !this.adjacencyList[source].has(destination)
+      !this.hasVertex(source) ||
+      !this.hasVertex(destination) ||
+      !this.hasEdge(source, destination)
     ) {
       return false;
     }

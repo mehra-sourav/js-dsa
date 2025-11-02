@@ -21,7 +21,7 @@ class AdjacencyListGraph {
       return false;
     }
 
-    this.adjacencyList[value] = new Set();
+    this.adjacencyList[value] = new Map();
 
     return value;
   }
@@ -41,7 +41,7 @@ class AdjacencyListGraph {
     let neighbourNodes = this.adjacencyList[value];
 
     // Removing the node from it's neighbours' adjacency lists
-    neighbourNodes?.forEach((node) => this.removeEdge(node, value));
+    neighbourNodes?.forEach((_, node) => this.removeEdge(node, value));
 
     delete this.adjacencyList[value];
 
@@ -58,14 +58,14 @@ class AdjacencyListGraph {
    * ends
    * @returns {Array|false} Edge endpoints if added; false if edge already exists.
    */
-  addEdge(source, destination) {
+  addEdge(source, destination, weight = 1) {
     // Adding missing vertices
     if (!this.hasVertex(source)) {
-      this.adjacencyList[source] = new Set();
+      this.addVertex(source);
     }
 
     if (!this.hasVertex(destination)) {
-      this.adjacencyList[destination] = new Set();
+      this.addVertex(destination);
     }
 
     // Early return if edge already exists
@@ -73,10 +73,10 @@ class AdjacencyListGraph {
       return false;
     }
 
-    this.adjacencyList[source].add(destination);
+    this.adjacencyList[source].set(destination, weight);
 
     if (!this.isDirected()) {
-      this.adjacencyList[destination].add(source);
+      this.adjacencyList[destination].set(source, weight);
     }
 
     return [source, destination];
@@ -235,7 +235,7 @@ class AdjacencyListGraph {
    * @returns {Set}  Set of neighbors
    */
   getNeighbours(value) {
-    return this.adjacencyList[value];
+    return new Set(this.adjacencyList[value].keys());
   }
 
   /**

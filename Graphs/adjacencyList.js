@@ -110,6 +110,69 @@ class AdjacencyListGraph {
     return [source, destination];
   }
 
+  /**
+   * Finds the shortest path from the start vertex to all other vertices using Dijkstra's algorithm.
+   * !Time Complexity: O(V^2)
+   * !Space Complexity: O(V + E)
+   * @param {number} source - The starting vertex.
+   * @returns {Object} An object mapping each vertex to its shortest distance from the start vertex.
+   */
+  dijkstra(source) {
+    const vertices = this.getVertices();
+    const visited = new Set();
+    const distance = new Map();
+
+    if (!this.hasVertex(source)) return {};
+
+    // Intializing distances for each vertex with Infinity
+    vertices.forEach((vertex) => {
+      distance.set(Number(vertex), Infinity);
+    });
+
+    // Marking source's distance from itself to 0
+    distance.set(source, 0);
+    const min = [[source, 0]];
+
+    const getMinimum = () => {
+      let minIdx = 0;
+
+      for (let i = 0; i < min.length; i++) {
+        if (min[i][1] < min[minIdx][1]) {
+          minIdx = i;
+        }
+      }
+
+      let minVertex = min[minIdx];
+      min.splice(minIdx, 1);
+
+      return minVertex;
+    };
+
+    while (min.length > 0) {
+      const current = getMinimum();
+
+      const [currentNode, distanceTillCurrent] = current;
+
+      const neighbours = this.getNeighbours(currentNode);
+
+      for (const vertex of neighbours) {
+        if (visited.has(vertex)) continue;
+
+        const dist = this.getEdge(currentNode, vertex);
+
+        if (distanceTillCurrent + dist < distance.get(vertex)) {
+          distance.set(vertex, distanceTillCurrent + dist);
+        }
+
+        min.push([vertex, distance.get(vertex)]);
+      }
+
+      visited.add(currentNode);
+    }
+
+    return Object.fromEntries(distance);
+  }
+
   // /**
   //  * Traverses the graph using breadth first search algorithm
   //  * !Time Complexity: O(n)
@@ -246,6 +309,22 @@ class AdjacencyListGraph {
    */
   isDirected() {
     return this.isDirectedGraph;
+  }
+
+  /**
+   * Checks if an edge exists from source vertex to destination vertex
+   * !Time Complexity: O(1)
+   * !Space Complexity: O(1)
+   * @param {number} source - The starting vertex of the edge
+   * @param {number} destination - The ending vertex of the edge
+   * @returns {boolean} True if the edge exists, false otherwise
+   */
+  getEdge(source, destination) {
+    if (!this.hasVertex(source) || !this.hasVertex(destination)) {
+      return false;
+    }
+
+    return this.adjacencyList[source].get(destination);
   }
 }
 

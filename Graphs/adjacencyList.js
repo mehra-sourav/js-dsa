@@ -120,26 +120,29 @@ class AdjacencyListGraph {
    * @returns {Object} An object mapping each vertex to its shortest distance from the start vertex.
    */
   dijkstra(source) {
-    if (!this.hasVertex(source)) return {};
+    if (!this.hasVertex(source)) return { distances: {}, path: {} };
 
     const vertices = this.getVertices();
     const visited = new Set();
-    const distance = new Map();
+    const distances = new Map();
+    const path = new Map();
     const minHeap = new MinHeap((a) => a[1]);
 
     // Intializing distances for each vertex with Infinity
     vertices.forEach((vertex) => {
-      distance.set(Number(vertex), Infinity);
+      distances.set(Number(vertex), Infinity);
+      path.set(Number(vertex), "");
     });
 
     // Marking source's distance from itself to 0
-    distance.set(source, 0);
-    minHeap.insert([source, 0]);
+    distances.set(source, 0);
+    path.set(source, String(source));
+    minHeap.insert([source, 0, String(source)]);
 
     while (minHeap.size() > 0) {
       const current = minHeap.extractRoot();
 
-      const [currentNode, distanceTillCurrent] = current;
+      const [currentNode, distanceTillCurrent, pathSoFar] = current;
 
       const neighbours = this.getNeighbours(currentNode);
 
@@ -149,17 +152,21 @@ class AdjacencyListGraph {
 
         const dist = this.getEdge(currentNode, vertex);
 
-        if (distanceTillCurrent + dist < distance.get(vertex)) {
-          distance.set(vertex, distanceTillCurrent + dist);
+        if (distanceTillCurrent + dist < distances.get(vertex)) {
+          distances.set(vertex, distanceTillCurrent + dist);
+          path.set(vertex, pathSoFar + ` --> ${vertex}`);
         }
 
-        minHeap.insert([vertex, distance.get(vertex)]);
+        minHeap.insert([vertex, distances.get(vertex), path.get(vertex)]);
       }
 
       visited.add(currentNode);
     }
 
-    return Object.fromEntries(distance);
+    return {
+      distances: Object.fromEntries(distances),
+      path: Object.fromEntries(path),
+    };
   }
 
   // /**

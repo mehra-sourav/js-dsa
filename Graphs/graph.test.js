@@ -362,7 +362,7 @@ function runGraphTests(GraphClass) {
     describe("Dijkstra Algorithm Tests", () => {
       it("should return infinite distances for all vertices in an empty graph", () => {
         const graph = new GraphClass(false);
-        const distances = graph.dijkstra(1);
+        const { distances } = graph.dijkstra(1);
         expect(distances).toEqual({});
       });
 
@@ -373,7 +373,7 @@ function runGraphTests(GraphClass) {
         graph.addVertex(3);
         graph.addEdge(1, 2, 4);
         graph.addEdge(2, 3, 1);
-        const distances = graph.dijkstra(1);
+        const { distances } = graph.dijkstra(1);
         expect(distances[1]).toEqual(0);
         expect(distances[2]).toEqual(4);
         expect(distances[3]).toEqual(5);
@@ -389,7 +389,7 @@ function runGraphTests(GraphClass) {
         graph.addEdge(1, 3, 4);
         graph.addEdge(2, 3, 2);
         graph.addEdge(3, 4, 1);
-        const distances = graph.dijkstra(1);
+        const { distances } = graph.dijkstra(1);
         expect(distances[1]).toEqual(0);
         expect(distances[2]).toEqual(1);
         expect(distances[3]).toEqual(3);
@@ -401,7 +401,7 @@ function runGraphTests(GraphClass) {
         graph.addVertex(1);
         graph.addVertex(2);
         // No edges between 1 and 2
-        const distances = graph.dijkstra(1);
+        const { distances } = graph.dijkstra(1);
         expect(distances[1]).toEqual(0);
         expect(distances[2]).toBe(Infinity);
       });
@@ -410,8 +410,36 @@ function runGraphTests(GraphClass) {
         const graph = new GraphClass(true);
         graph.addVertex(1);
         graph.addEdge(1, 1, 10);
-        const distances = graph.dijkstra(1);
+        const { distances } = graph.dijkstra(1);
         expect(distances[1]).toEqual(0);
+      });
+
+      it("should return correct shortest path from source", () => {
+        const graph = new GraphClass(false, 0, 1, 2, 3, 4, 5, 6);
+        graph.addEdge(0, 1, 2);
+        graph.addEdge(0, 2, 6);
+        graph.addEdge(1, 3, 5);
+        graph.addEdge(2, 3, 8);
+        graph.addEdge(3, 5, 15);
+        graph.addEdge(3, 4, 10);
+        graph.addEdge(4, 5, 3);
+        graph.addEdge(4, 6, 2);
+        graph.addEdge(5, 6, 6);
+
+        const { distances, path } = graph.dijkstra(0);
+        const correctPaths = {
+          0: "0",
+          1: "0 --> 1",
+          2: "0 --> 2",
+          3: "0 --> 1 --> 3",
+          4: "0 --> 1 --> 3 --> 4",
+          5: "0 --> 1 --> 3 --> 4 --> 5",
+          6: "0 --> 1 --> 3 --> 4 --> 6",
+        };
+
+        Object.keys(correctPaths).forEach((vertex) => {
+          expect(path[vertex]).toBe(correctPaths[vertex]);
+        });
       });
     });
   });

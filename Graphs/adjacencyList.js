@@ -1,3 +1,5 @@
+const { MinHeap } = require("@datastructures-js/heap");
+
 /**
  * Class for creating a new graph
  */
@@ -118,11 +120,12 @@ class AdjacencyListGraph {
    * @returns {Object} An object mapping each vertex to its shortest distance from the start vertex.
    */
   dijkstra(source) {
+    if (!this.hasVertex(source)) return {};
+
     const vertices = this.getVertices();
     const visited = new Set();
     const distance = new Map();
-
-    if (!this.hasVertex(source)) return {};
+    const minHeap = new MinHeap((a) => a[1]);
 
     // Intializing distances for each vertex with Infinity
     vertices.forEach((vertex) => {
@@ -131,30 +134,16 @@ class AdjacencyListGraph {
 
     // Marking source's distance from itself to 0
     distance.set(source, 0);
-    const min = [[source, 0]];
+    minHeap.insert([source, 0]);
 
-    const getMinimum = () => {
-      let minIdx = 0;
-
-      for (let i = 0; i < min.length; i++) {
-        if (min[i][1] < min[minIdx][1]) {
-          minIdx = i;
-        }
-      }
-
-      let minVertex = min[minIdx];
-      min.splice(minIdx, 1);
-
-      return minVertex;
-    };
-
-    while (min.length > 0) {
-      const current = getMinimum();
+    while (minHeap.size() > 0) {
+      const current = minHeap.extractRoot();
 
       const [currentNode, distanceTillCurrent] = current;
 
       const neighbours = this.getNeighbours(currentNode);
 
+      // Updating distances of all unvisited neighbours of current node
       for (const vertex of neighbours) {
         if (visited.has(vertex)) continue;
 
@@ -164,7 +153,7 @@ class AdjacencyListGraph {
           distance.set(vertex, distanceTillCurrent + dist);
         }
 
-        min.push([vertex, distance.get(vertex)]);
+        minHeap.insert([vertex, distance.get(vertex)]);
       }
 
       visited.add(currentNode);

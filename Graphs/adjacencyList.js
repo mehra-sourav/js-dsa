@@ -58,6 +58,7 @@ class AdjacencyListGraph {
    * starts from
    * @param {number} destination - The value of the vertex where the edge
    * ends
+   * @param {number} weight - The value of the weight of the edge
    * @returns {Array|false} Edge endpoints if added; false if edge already exists.
    */
   addEdge(source, destination, weight = 1) {
@@ -81,7 +82,7 @@ class AdjacencyListGraph {
       this.adjacencyList[destination].set(source, weight);
     }
 
-    return [source, destination];
+    return [source, destination, weight];
   }
 
   /**

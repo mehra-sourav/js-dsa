@@ -426,7 +426,7 @@ function runGraphTests(GraphClass) {
         graph.addEdge(4, 6, 2);
         graph.addEdge(5, 6, 6);
 
-        const { distances, path } = graph.dijkstra(0);
+        const { path } = graph.dijkstra(0);
         const correctPaths = {
           0: "0",
           1: "0 --> 1",

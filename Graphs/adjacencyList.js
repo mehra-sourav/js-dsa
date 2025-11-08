@@ -114,10 +114,13 @@ class AdjacencyListGraph {
 
   /**
    * Finds the shortest path from the start vertex to all other vertices using Dijkstra's algorithm.
-   * !Time Complexity: O(V^2)
+   * !Time Complexity: O(ElogV)
    * !Space Complexity: O(V + E)
    * @param {number} source - The starting vertex.
-   * @returns {Object} An object mapping each vertex to its shortest distance from the start vertex.
+   *  @returns {Object} An object with two properties:
+   *   - distances: An object mapping each vertex (number) to its shortest distance (number) from the source.
+   *   - path: An object mapping each vertex (number) to a string representing the shortest path from the source.
+   *     The path string format is like "1 --> 2 --> 5".
    */
   dijkstra(source) {
     if (!this.hasVertex(source)) return { distances: {}, path: {} };
@@ -140,9 +143,10 @@ class AdjacencyListGraph {
     minHeap.insert([source, 0, String(source)]);
 
     while (minHeap.size() > 0) {
-      const current = minHeap.extractRoot();
+      const [currentNode, distanceTillCurrent, pathSoFar] =
+        minHeap.extractRoot();
 
-      const [currentNode, distanceTillCurrent, pathSoFar] = current;
+      visited.add(currentNode);
 
       const neighbours = this.getNeighbours(currentNode);
 
@@ -155,12 +159,9 @@ class AdjacencyListGraph {
         if (distanceTillCurrent + dist < distances.get(vertex)) {
           distances.set(vertex, distanceTillCurrent + dist);
           path.set(vertex, pathSoFar + ` --> ${vertex}`);
+          minHeap.insert([vertex, distances.get(vertex), path.get(vertex)]);
         }
-
-        minHeap.insert([vertex, distances.get(vertex), path.get(vertex)]);
       }
-
-      visited.add(currentNode);
     }
 
     return {

@@ -64,9 +64,10 @@ class AdjacencyMatrixGraph {
    * starts from
    * @param {number} destination - The value of the vertex where the edge
    * ends
+   * @param {number} weight - The value of the weight of the edge
    * @returns {Array|false} Edge endpoints if added; false if edge already exists.
    */
-  addEdge(source, destination) {
+  addEdge(source, destination, weight = 1) {
     if (!this.hasVertex(source)) {
       this.addVertex(source);
     }
@@ -78,17 +79,17 @@ class AdjacencyMatrixGraph {
     const sourceIdx = this.vertexIndexMap.get(source);
     const destinationIdx = this.vertexIndexMap.get(destination);
 
-    if (this.adjacencyMatrix[sourceIdx][destinationIdx] === 1) {
+    if (this.adjacencyMatrix[sourceIdx][destinationIdx] !== 0) {
       return false;
     }
 
-    this.adjacencyMatrix[sourceIdx][destinationIdx] = 1;
+    this.adjacencyMatrix[sourceIdx][destinationIdx] = weight;
 
     if (!this.isDirected()) {
-      this.adjacencyMatrix[destinationIdx][sourceIdx] = 1;
+      this.adjacencyMatrix[destinationIdx][sourceIdx] = weight;
     }
 
-    return [source, destination];
+    return [source, destination, weight];
   }
 
   /**

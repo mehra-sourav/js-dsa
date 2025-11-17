@@ -1,3 +1,5 @@
+const { MinHeap } = require("@datastructures-js/heap");
+
 /**
  * Class for creating a new graph
  */
@@ -21,7 +23,7 @@ class AdjacencyListGraph {
       return false;
     }
 
-    this.adjacencyList[value] = new Set();
+    this.adjacencyList[value] = new Map();
 
     return value;
   }
@@ -41,7 +43,7 @@ class AdjacencyListGraph {
     let neighbourNodes = this.adjacencyList[value];
 
     // Removing the node from it's neighbours' adjacency lists
-    neighbourNodes?.forEach((node) => this.removeEdge(node, value));
+    neighbourNodes?.forEach((_, node) => this.removeEdge(node, value));
 
     delete this.adjacencyList[value];
 
@@ -56,16 +58,17 @@ class AdjacencyListGraph {
    * starts from
    * @param {number} destination - The value of the vertex where the edge
    * ends
+   * @param {number} weight - The value of the weight of the edge
    * @returns {Array|false} Edge endpoints if added; false if edge already exists.
    */
-  addEdge(source, destination) {
+  addEdge(source, destination, weight = 1) {
     // Adding missing vertices
     if (!this.hasVertex(source)) {
-      this.adjacencyList[source] = new Set();
+      this.addVertex(source);
     }
 
     if (!this.hasVertex(destination)) {
-      this.adjacencyList[destination] = new Set();
+      this.addVertex(destination);
     }
 
     // Early return if edge already exists
@@ -73,13 +76,13 @@ class AdjacencyListGraph {
       return false;
     }
 
-    this.adjacencyList[source].add(destination);
+    this.adjacencyList[source].set(destination, weight);
 
     if (!this.isDirected()) {
-      this.adjacencyList[destination].add(source);
+      this.adjacencyList[destination].set(source, weight);
     }
 
-    return [source, destination];
+    return [source, destination, weight];
   }
 
   /**
@@ -108,6 +111,64 @@ class AdjacencyListGraph {
     }
 
     return [source, destination];
+  }
+
+  /**
+   * Finds the shortest path from the start vertex to all other vertices using Dijkstra's algorithm.
+   * !Time Complexity: O(ElogV)
+   * !Space Complexity: O(V + E)
+   * @param {number} source - The starting vertex.
+   *  @returns {Object} An object with two properties:
+   *   - distances: An object mapping each vertex (number) to its shortest distance (number) from the source.
+   *   - path: An object mapping each vertex (number) to a string representing the shortest path from the source.
+   *     The path string format is like "1 --> 2 --> 5".
+   */
+  dijkstra(source) {
+    if (!this.hasVertex(source)) return { distances: {}, path: {} };
+
+    const vertices = this.getVertices();
+    const visited = new Set();
+    const distances = new Map();
+    const path = new Map();
+    const minHeap = new MinHeap((a) => a[1]);
+
+    // Intializing distances for each vertex with Infinity
+    vertices.forEach((vertex) => {
+      distances.set(Number(vertex), Infinity);
+      path.set(Number(vertex), "");
+    });
+
+    // Marking source's distance from itself to 0
+    distances.set(source, 0);
+    path.set(source, String(source));
+    minHeap.insert([source, 0, String(source)]);
+
+    while (minHeap.size() > 0) {
+      const [currentNode, distanceTillCurrent, pathSoFar] =
+        minHeap.extractRoot();
+
+      visited.add(currentNode);
+
+      const neighbours = this.getNeighbours(currentNode);
+
+      // Updating distances of all unvisited neighbours of current node
+      for (const vertex of neighbours) {
+        if (visited.has(vertex)) continue;
+
+        const dist = this.getEdge(currentNode, vertex);
+
+        if (distanceTillCurrent + dist < distances.get(vertex)) {
+          distances.set(vertex, distanceTillCurrent + dist);
+          path.set(vertex, pathSoFar + ` --> ${vertex}`);
+          minHeap.insert([vertex, distances.get(vertex), path.get(vertex)]);
+        }
+      }
+    }
+
+    return {
+      distances: Object.fromEntries(distances),
+      path: Object.fromEntries(path),
+    };
   }
 
   // /**
@@ -235,7 +296,7 @@ class AdjacencyListGraph {
    * @returns {Set}  Set of neighbors
    */
   getNeighbours(value) {
-    return this.adjacencyList[value];
+    return new Set(this.adjacencyList[value].keys());
   }
 
   /**
@@ -246,6 +307,22 @@ class AdjacencyListGraph {
    */
   isDirected() {
     return this.isDirectedGraph;
+  }
+
+  /**
+   * Checks if an edge exists from source vertex to destination vertex
+   * !Time Complexity: O(1)
+   * !Space Complexity: O(1)
+   * @param {number} source - The starting vertex of the edge
+   * @param {number} destination - The ending vertex of the edge
+   * @returns {boolean} True if the edge exists, false otherwise
+   */
+  getEdge(source, destination) {
+    if (!this.hasVertex(source) || !this.hasVertex(destination)) {
+      return false;
+    }
+
+    return this.adjacencyList[source].get(destination);
   }
 }
 

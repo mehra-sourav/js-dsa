@@ -1,4 +1,5 @@
 const ArrayHeap = require("./arrayHeap");
+const TreeHeap = require("./treeHeap");
 
 const isValidMinHeap = (arr) => {
   for (let i = 0; i < arr.length; i++) {
@@ -127,7 +128,7 @@ function runTests(HeapClass) {
 
     it("should handle invalid inputs gracefully", () => {
       const heap = new HeapClass(false, undefined, null, NaN, 3, 2);
-      expect(heap.size()).toBeGreaterThanOrEqual(2); // Only valid numbers inserted
+      expect(heap.size()).toBeGreaterThanOrEqual(2);
       expect(isValidMinHeap(heap.toArray())).toBe(true);
     });
   });
@@ -193,3 +194,4 @@ function runTests(HeapClass) {
 }
 
 runTests(ArrayHeap);
+runTests(TreeHeap);

@@ -151,7 +151,19 @@ class LinkedList {
         return foundNode
     }
 
-    reverse() {}
+    reverse() {
+        let prev = null, curr = this.head;
+
+        while (curr) {
+            let next = curr.next;
+            curr.next = prev;
+            prev = curr
+            curr = next;
+        }
+        
+        this.tail = this.head
+        this.head = prev;
+    }
 
     getHead() {
         return this.head

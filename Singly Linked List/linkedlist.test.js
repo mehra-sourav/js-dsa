@@ -223,6 +223,62 @@ describe("LinkedList Find", () => {
     });
 });
 
+describe("Reverse Linked list", () => {
+    it('should be able to reverse a linked list with one element correctly', () => {
+        const linkedList = new LinkedList(1);
+
+        expect(linkedList.toArray()).toEqual([1]);
+
+        linkedList.reverse();
+
+        expect(linkedList.toArray()).toEqual([1]);
+    });
+
+    it('should be able to reverse a linked list with two elements correctly', () => {
+        const linkedList = new LinkedList(1, 2);
+
+        expect(linkedList.toArray()).toEqual([1, 2]);
+
+        linkedList.reverse();
+
+        expect(linkedList.toArray()).toEqual([2, 1]);
+    });
+
+    it('should be able to reverse a linked list with no elements correctly', () => {
+        const linkedList = new LinkedList();
+
+        expect(linkedList.toArray()).toEqual([]);
+
+        linkedList.reverse();
+
+        expect(linkedList.toArray()).toEqual([]);
+        expect(linkedList.getHead()).toEqual(null);
+        expect(linkedList.getTail()).toEqual(null);
+    });
+
+    it('should be able to reverse a linked list with multiple elements correctly', () => {
+        const linkedList = new LinkedList(1, 2, 3, 4, 5);
+
+        expect(linkedList.toArray()).toEqual([1, 2, 3, 4, 5]);
+
+        linkedList.reverse();
+
+        expect(linkedList.toArray()).toEqual([5, 4, 3, 2, 1]);
+    });
+
+    it('should correctly update the head and tail after reversing the list', () => {
+        const linkedList = new LinkedList(1, 2, 3);
+
+        expect(linkedList.getHead().value).toEqual(1);
+        expect(linkedList.getTail().value).toEqual(3);
+
+        linkedList.reverse();
+
+        expect(linkedList.getHead().value).toEqual(3);
+        expect(linkedList.getTail().value).toEqual(1);
+    });
+})
+
 describe("LinkedList Utility Methods", () => {
     it("should return correct size", () => {
         const linkedList = new LinkedList(1, 2, 3);

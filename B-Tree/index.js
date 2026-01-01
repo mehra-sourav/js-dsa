@@ -1,15 +1,81 @@
 class Node {
-    constructor(order, isLeaf) {
+    constructor(order, parent = null) {
         this.order = order;
         this.keys = new Array(order - 1).fill(null);
         this.children = new Array(order).fill(null);
         this.keyCount = 0;
-        this.isLeaf = isLeaf;
+        this.parent = parent;
     }
 
-    split(medianIdx) {
+    insert(key) {
+        let keyIdx = this.keyCount - 1;
+
+        // Finding out the position of the key in the keys array
+        while (keyIdx >= 0 && this.keys[keyIdx] > key) {
+            // Shifting key to the right to make space for the new key
+            this.keys[keyIdx + 1] = this.keys[keyIdx]
+            keyIdx--;
+        }
+
+        // Inserting key at correct position
+        this.keys[keyIdx + 1] = key;
+        this.keyCount++;
+
+        // Split node if it is full
+        if (this.keyCount === this.order - 1) {
+            // Splitting node
+            const { medianKey, leftNode, rightNode } = this.splitAtMedian();
+
+            // Promoting median to parent
+            // Case 1: Insertion at root node (doesn't have parent)
+            if (!this.parent) {
+                const newNode = new Node(this.order);
+                newNode.keys[0] = medianKey
+                newNode.keyCount++;
+                newNode.children[0] = leftNode
+                newNode.children[1] = rightNode
+
+                this.root = newNode;
+                
+                // Updating parent of children
+                leftNode.parent = newNode
+                rightNode.parent = newNode
+            }
+            // Case 2: Inserting at leaf node
+            // REWORK HERE
+            else {
+                this.parent.insert(medianKey);
+                // isnert children to left and right of the index where median was inserted
+                // update parent of children
+            }
+        }
+    }
+
+    splitAtMedian() {
         // split left keys and left children
         // split right keys and children
+        const medianIdx = Math.floor((this.keyCount - 1) / 2);
+        const leftNode = new Node(this.order);
+        const leftKeys = this.keys.slice(0, medianIdx)
+
+        // Copying keys in left split portion to the left node 
+        for (let i = 0; i < leftKeys.length; i++) {
+            leftNode.keys[i] = leftKeys[i]
+        }
+
+        const rightNode = new Node(this.order)
+        const rightKeys = this.keys.slice(medianIdx + 1)
+
+        // Copying keys in right split portion to the right node 
+        for (let i = 0; i < rightKeys.length; i++) {
+            rightNode.keys[i] = rightKeys[i]
+        }
+
+        return { medianKey: this.keys[medianIdx], leftNode, rightNode }
+    }
+
+    isLeaf() {
+        return this.children.every(item => item === null);
     }
 }
 
@@ -20,59 +86,74 @@ class BTree {
     }
 
     insert(key) {
-        const insertHelper = (root, key) => {
-            if (!root) {
-                const newNode = new Node(this.order, true);
-                newNode.keys[0] = key;
-                newNode.keyCount++;
+        // If root node is null
+        if (!this.root) {
+            const newNode = new Node(this.order);
+            newNode.keys[0] = key;
+            newNode.keyCount++;
 
-                return newNode;
-            }
-            else if (root.isLeaf) {
-
-                // Split node if it is full
-                if (root.keyCount === root.order - 1) {
-                    // Splitting node
-                    //
-                    const newNode = new Node(root.order, root.isLeaf)
-                    newNode.children[0] = root;
-
-                    const medianIdx = Math.floor((newNode.keyCount - 1) / 2);
-                    // 
-                    newNode.split(medianIdx)
-                }
-
-                // This in if leaf node
-                let i = this.root.keyCount - 1;
-
-                // Finding out the key which is smaller than the key to be inserted
-                while (i >= 0 && this.root.keys[i] > key) {
-                    // Shifting key to the right to make space for the new key
-                    this.root.keys[i + 1] = this.root.keys[i]
-                    i--;
-                }
-
-                // Inserting key at correct position
-                root.keys[i + 1] = key;
-                root.keyCount++;
-
-
-                // insert 1
-
-                // 0 1 2 3 4 5
-                // 2 4
-            }
-            // Internal node
-            // else {
-            //     let i = 0;
-
-            //     // Find the right key to get the child pointer
-            //     while (i < root.keyCount && root.keys[i] < key) {
-
-            //     }
-            // }
+            this.root = newNode;
+            return this.root
         }
-        this.root = insertHelper(this.root, key)
+        else {
+            // Early return if key already exists in B-Tree
+            if (this.search(value, true)) {
+                return false;
+            }
+
+            // Find out the node in which key needs to be inserted
+            const targetNode = this.search(key, false)
+
+            targetNode.insert(key)
+            // insert 1
+
+            // 0 1 2 3 4 5
+            // 2 4
+            // keys:        1     2     3     4
+            // children: [0] [1.1] [2.2] [3.3] [4.4]
+        }
+        // Internal node
+        // else {
+        //     let i = 0;
+
+        //     // Find the right key to get the child pointer
+        //     while (i < root.keyCount && root.keys[i] < key) {
+
+        //     }
+        // }
+    }
+
+    // Searches for a key in B-Tree. strictMatch searches for node containing key
+    search(key, strictMatch = true) {
+        if (!this.root) {
+            return false
+        }
+
+        return this.traverseToLeaf(this.root, key, strictMatch)
+    }
+
+    // Recursively traverses to the leaf where key belongs
+    traverseToLeaf(root, key, strictMatch) {
+        // If current node contains the key as one of its keys
+        if (root.keys.includes(key)) {
+            return root;
+        }
+        // If current node is a leaf node
+        else if (root.isLeaf()) {
+            if (strictMatch) return false;
+            return root;
+        }
+        // Find and search the appropriate child which may contain the key
+        else {
+            for (let i = 0; i < root.keyCount; i++) {
+                if (key < root.keys[i]) {
+                    return this.traverseToLeaf(root.children[i], key);
+                }
+            }
+
+            // Searching the last child for keys
+            return this.traverseToLeaf(root.children[keyCount], key);
+        }
     }
 }
 

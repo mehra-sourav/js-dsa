@@ -22,24 +22,24 @@ class Node {
         this.keyCount++;
 
         // Split node if it is full
-        if (this.keyCount === this.order - 1) {
+        if (this.keyCount === this.order) {
             // Splitting node
             const { medianKey, leftNode, rightNode } = this.splitAtMedian();
 
             // Promoting median to parent
             // Case 1: Insertion at root node (doesn't have parent)
             if (!this.parent) {
-                const newNode = new Node(this.order);
-                newNode.keys[0] = medianKey
-                newNode.keyCount++;
-                newNode.children[0] = leftNode
-                newNode.children[1] = rightNode
+                const newRoot = new Node(this.order);
+                newRoot.keys[0] = medianKey
+                newRoot.keyCount++;
+                newRoot.children[0] = leftNode
+                newRoot.children[1] = rightNode
 
-                this.root = newNode;
-                
                 // Updating parent of children
-                leftNode.parent = newNode
-                rightNode.parent = newNode
+                leftNode.parent = newRoot;
+                rightNode.parent = newRoot;
+
+                return newRoot;
             }
             // Case 2: Inserting at leaf node
             // REWORK HERE
@@ -49,6 +49,8 @@ class Node {
                 // update parent of children
             }
         }
+
+        return null;
     }
 
     splitAtMedian() {
@@ -61,6 +63,7 @@ class Node {
         // Copying keys in left split portion to the left node 
         for (let i = 0; i < leftKeys.length; i++) {
             leftNode.keys[i] = leftKeys[i]
+            leftNode.keyCount++;
         }
 
         const rightNode = new Node(this.order)
@@ -68,7 +71,8 @@ class Node {
 
         // Copying keys in right split portion to the right node 
         for (let i = 0; i < rightKeys.length; i++) {
-            rightNode.keys[i] = rightKeys[i]
+            rightNode.keys[i] = rightKeys[i];
+            rightNode.keyCount++;
         }
 
         return { medianKey: this.keys[medianIdx], leftNode, rightNode }
@@ -88,30 +92,35 @@ class BTree {
     insert(key) {
         // If root node is null
         if (!this.root) {
-            const newNode = new Node(this.order);
-            newNode.keys[0] = key;
-            newNode.keyCount++;
+            this.root = new Node(this.order);
+            this.root.keys[0] = key;
+            this.root.keyCount++;
 
-            this.root = newNode;
             return this.root
         }
-        else {
-            // Early return if key already exists in B-Tree
-            if (this.search(value, true)) {
-                return false;
-            }
 
-            // Find out the node in which key needs to be inserted
-            const targetNode = this.search(key, false)
-
-            targetNode.insert(key)
-            // insert 1
-
-            // 0 1 2 3 4 5
-            // 2 4
-            // keys:        1     2     3     4
-            // children: [0] [1.1] [2.2] [3.3] [4.4]
+        // Early return if key already exists in B-Tree
+        if (this.search(key, true)) {
+            return false;
         }
+
+        // Find out the node in which key needs to be inserted
+        const targetNode = this.search(key, false)
+        // targetNode.insert(key)
+
+        const newRoot = targetNode.insert(key);  // returns root OR null
+        if (newRoot) {
+            this.root = newRoot;
+        }
+        return this.root;
+
+        // insert 1
+
+        // 0 1 2 3 4 5
+        // 2 4
+        // keys:        1     2     3     4
+        // children: [0] [1.1] [2.2] [3.3] [4.4]
+
         // Internal node
         // else {
         //     let i = 0;
@@ -152,7 +161,7 @@ class BTree {
             }
 
             // Searching the last child for keys
-            return this.traverseToLeaf(root.children[keyCount], key);
+            return this.traverseToLeaf(root.children[root.keyCount], key);
         }
     }
 }
@@ -162,3 +171,6 @@ class BTree {
 // 2. find correct poisiont of key insert there. 
 // 3. find correct node, insert there
 // 3.1. IF node is overfilling, split it, push mid to parent 
+
+
+module.exports = BTree

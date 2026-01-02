@@ -25,8 +25,8 @@ class Node {
             // Splitting node
             const { medianKey, leftNode, rightNode } = this.splitAtMedian();
 
-            // Promoting median to parent
-            // Case 1: Insertion at root node (doesn't have parent)
+            // Promoting median key to parent
+            // Case 1: Root node (doesn't have parent)
             if (!this.parent) {
                 const newRoot = new Node(this.order);
                 newRoot.keys[0] = medianKey
@@ -40,9 +40,54 @@ class Node {
 
                 return newRoot;
             }
-            // Case 2: Inserting at leaf node
+            // Case 2: Leaf node
+            else if (this.isLeaf()) {
+                let newParent = this.parent.insert(medianKey);
+                const medianIdxInParent = this.parent.keys.indexOf(medianKey)
+
+                let childIdx = this.parent.children.length - 2;
+
+                // Shifting old children to the right to make space for the new children
+                while (childIdx > medianIdxInParent) {
+                    this.parent.children[childIdx + 1] = this.parent.children[childIdx]
+                    childIdx--;
+                }
+
+                // Updating parent of new children
+                leftNode.parent = newParent ?? this.parent
+                rightNode.parent = newParent ?? this.parent;
+
+                // New root was created
+                if (newParent) {
+                    newParent.children[0] = leftNode
+                    newParent.children[1] = rightNode
+                }
+                else {
+                    this.parent.children[medianIdxInParent] = leftNode
+                    this.parent.children[medianIdxInParent + 1] = rightNode
+                }
+
+                return newParent;
+            }
+            // Case 3: Internal node
             else {
-                this.parent.insert(medianKey);
+                let parent = this.parent;
+
+                if (!parent) {
+                    const newRoot = new Node(this.order);
+                    newRoot.keys[0] = medianKey
+                    newRoot.keyCount++;
+                    newRoot.children[0] = leftNode
+                    newRoot.children[1] = rightNode
+
+                    // Updating parent of children
+                    leftNode.parent = newRoot;
+                    rightNode.parent = newRoot;
+
+                    parent = this.parent = newRoot;
+                }
+
+
                 const medianIdxInParent = this.parent.keys.indexOf(medianKey)
 
                 let childIdx = this.parent.children.length - 2;
@@ -71,6 +116,7 @@ class Node {
         const medianIdx = Math.floor((this.keyCount - 1) / 2);
         const leftNode = new Node(this.order);
         const leftKeys = this.keys.slice(0, medianIdx)
+        const leftChildren = this.children.slice(0, medianIdx + 1)
 
         // Copying keys in left split portion to the left node 
         for (let i = 0; i < leftKeys.length; i++) {
@@ -78,13 +124,24 @@ class Node {
             leftNode.keyCount++;
         }
 
+        // Copying children in left split portion to the left node 
+        for (let i = 0; i < leftChildren.length; i++) {
+            leftNode.children[i] = leftChildren[i];
+        }
+
         const rightNode = new Node(this.order)
         const rightKeys = this.keys.slice(medianIdx + 1)
+        const rightChildren = this.children.slice(medianIdx + 2)
 
         // Copying keys in right split portion to the right node 
         for (let i = 0; i < rightKeys.length; i++) {
             rightNode.keys[i] = rightKeys[i];
             rightNode.keyCount++;
+        }
+
+        // Copying children in right split portion to the right node 
+        for (let i = 0; i < rightChildren.length; i++) {
+            rightNode.children[i] = rightChildren[i];
         }
 
         return { medianKey: this.keys[medianIdx], leftNode, rightNode }

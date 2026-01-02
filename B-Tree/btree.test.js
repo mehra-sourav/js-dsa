@@ -310,6 +310,94 @@ describe('BTree tests', () => {
         });
     });
 
+    describe.only('BTree Insert - Double Split (2-Level → New Root, order=5)', () => {
+        let btree;
+
+        beforeEach(() => {
+            btree = new BTree(5); // max 4 keys/node
+        });
+
+        it.only('leaf split → full root split → new root (double promotion)', () => {
+            [1, 3, 5, 7, 9, 12, 14, 16, 18, 22, 24, 26, 28, 30].forEach(k => btree.insert(k));
+
+            // Overflow middle leaf → promote → root full → NEW ROOT!
+            btree.insert(15);
+            btree.insert(17);
+            btree.insert(17.5);
+            btree.insert(20);
+
+            const newRoot = btree.root;
+            expect(newRoot.keyCount).toBe(1);           // single median
+            expect(newRoot.isLeaf()).toBe(false);
+            expect(newRoot.children.filter(Boolean).length).toBe(2);
+
+            // Both children (old roots) are internal nodes now
+            newRoot.children.forEach(child => {
+                expect(child.isLeaf()).toBe(false);
+                expect(child.keyCount).toBe(2);           // split result
+            });
+        });
+
+        it('double split maintains search across 3 levels', () => {
+            [1, 3, 5, 7, 9, 12, 14, 16, 18, 22, 24, 26, 28, 30, 15, 17, 19, 20].forEach(k => btree.insert(k));
+
+            // All keys work
+            Array.from({ length: 18 }, (_, i) => i * 2 + 1).forEach(key => {
+                expect(btree.search(key)).toBeDefined();
+            });
+
+            // Deep routing
+            expect(btree.search(10, false).isLeaf()).toBe(true);
+            expect(btree.search(21, false).isLeaf()).toBe(true);
+        });
+
+        it('3-level hierarchy has correct parent chain', () => {
+            [1, 3, 5, 7, 9, 12, 14, 16, 18, 22, 24, 26, 28, 30, 15, 17, 19, 20].forEach(k => btree.insert(k));
+
+            const newRoot = btree.root;        // Level 0
+            const level1 = newRoot.children[0]; // Level 1 (old root)
+            const level2Leaf = level1.children[0]; // Level 2 (leaf)
+
+            expect(level1.parent).toBe(newRoot);
+            expect(level2Leaf.parent).toBe(level1);
+            expect(level2Leaf.isLeaf()).toBe(true);
+        });
+
+        it('height grows 2→3 + all nodes balanced', () => {
+            function height(node) {
+                if (!node || node.isLeaf()) return 1;
+                return 1 + Math.max(...node.children.map(c => height(c)).filter(h => h > 0));
+            }
+
+            [1, 3, 5, 7, 9, 12, 14, 16, 18].forEach(k => btree.insert(k)); // 2 levels
+            expect(height(btree.root)).toBe(2);
+
+            btree.insert(22); btree.insert(24); btree.insert(26); btree.insert(28); // fill
+            btree.insert(15); btree.insert(17); btree.insert(19); btree.insert(20); // DOUBLE SPLIT
+            expect(height(btree.root)).toBe(3);
+
+            // All leaf depths equal (balanced)
+            const leaves = findAllLeaves(btree.root);
+            const leafDepths = leaves.map(l => getDepth(btree.root, l));
+            expect(new Set(leafDepths).size).toBe(1);
+        });
+    });
+
+    // Helpers
+    function findAllLeaves(node) {
+        if (node.isLeaf()) return [node];
+        return node.children.flatMap(findAllLeaves);
+    }
+
+    function getDepth(root, target) {
+        function recurse(node, depth) {
+            if (node === target) return depth;
+            return node.children.map((c, i) => recurse(c, depth + 1)).find(d => d !== undefined);
+        }
+        return recurse(root, 0);
+    }
+
+
 
 
 

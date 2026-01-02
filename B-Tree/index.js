@@ -10,9 +10,8 @@ class Node {
     insert(key) {
         let keyIdx = this.keyCount - 1;
 
-        // Finding out the position of the key in the keys array
+        // Shifting key to the right to make space for the new key
         while (keyIdx >= 0 && this.keys[keyIdx] > key) {
-            // Shifting key to the right to make space for the new key
             this.keys[keyIdx + 1] = this.keys[keyIdx]
             keyIdx--;
         }
@@ -42,11 +41,24 @@ class Node {
                 return newRoot;
             }
             // Case 2: Inserting at leaf node
-            // REWORK HERE
             else {
                 this.parent.insert(medianKey);
-                // isnert children to left and right of the index where median was inserted
-                // update parent of children
+                const medianIdxInParent = this.parent.keys.indexOf(medianKey)
+
+                let childIdx = this.parent.children.length - 2;
+
+                // Shifting old children to the right to make space for the new children
+                while (childIdx > medianIdxInParent) {
+                    this.parent.children[childIdx + 1] = this.parent.children[childIdx]
+                    childIdx--;
+                }
+
+                // Updating parent of new children
+                leftNode.parent = this.parent
+                rightNode.parent = this.parent;
+
+                this.parent.children[medianIdxInParent] = leftNode
+                this.parent.children[medianIdxInParent + 1] = rightNode
             }
         }
 
@@ -113,23 +125,6 @@ class BTree {
             this.root = newRoot;
         }
         return this.root;
-
-        // insert 1
-
-        // 0 1 2 3 4 5
-        // 2 4
-        // keys:        1     2     3     4
-        // children: [0] [1.1] [2.2] [3.3] [4.4]
-
-        // Internal node
-        // else {
-        //     let i = 0;
-
-        //     // Find the right key to get the child pointer
-        //     while (i < root.keyCount && root.keys[i] < key) {
-
-        //     }
-        // }
     }
 
     // Searches for a key in B-Tree. strictMatch searches for node containing key
@@ -156,12 +151,12 @@ class BTree {
         else {
             for (let i = 0; i < root.keyCount; i++) {
                 if (key < root.keys[i]) {
-                    return this.traverseToLeaf(root.children[i], key);
+                    return this.traverseToLeaf(root.children[i], key, strictMatch);
                 }
             }
 
             // Searching the last child for keys
-            return this.traverseToLeaf(root.children[root.keyCount], key);
+            return this.traverseToLeaf(root.children[root.keyCount], key, strictMatch);
         }
     }
 }

@@ -173,7 +173,7 @@ describe('BTree tests', () => {
         });
 
         it('post-split search finds keys correctly', () => {
-            btree.insert(1); 
+            btree.insert(1);
             btree.insert(3);
             btree.insert(2);
             expect(btree.search(1)).toBeDefined();
@@ -182,6 +182,134 @@ describe('BTree tests', () => {
             expect(btree.search(0, false).isLeaf()).toBe(true);
         });
     });
+
+    describe('BTree Insert - Non-Root Leaf Split → Parent Promotion (order 5)', () => {
+        let btree;
+
+        beforeEach(() => {
+            btree = new BTree(5);
+
+            [10, 20, 30, 40, 50, 60, 70, 80].forEach(k => btree.insert(k));
+        });
+
+        it('inserts into correct non-root leaf (45 → middle child)', () => {
+            btree.insert(45); // targets middle leaf range
+
+            const root = btree.root;
+            expect(root.isLeaf()).toBe(false);
+
+            // Verify 45 exists in correct range child
+            const targetChild = root.children.find(
+                child => child?.keys.some(k => k === 45)
+            );
+            expect(targetChild).toBeDefined();
+            expect(targetChild.isLeaf()).toBe(true);
+            expect(targetChild.keys).toContain(45);
+        });
+
+        it('middle leaf overflow splits → median promoted + children shift right', () => {
+            // Target middle child: fill to 4 keys → overflow
+            btree.insert(42);
+            btree.insert(45);
+            btree.insert(48);
+            btree.insert(46);
+
+            const root = btree.root;
+            expect(root.keyCount).toBeGreaterThan(2); // promotion happened
+
+            // Children array grew, all non-null children respect invariants
+            const children = root.children.filter(Boolean);
+            expect(children.length).toBeGreaterThan(3);
+
+            // Every root key separates child ranges correctly
+            for (let i = 0; i < root.keyCount; i++) {
+                const leftMax = children[i].keys[children[i].keyCount - 1];
+                const rightMin = children[i + 1].keys[0];
+                expect(leftMax).toBeLessThanOrEqual(root.keys[i]);
+                expect(root.keys[i]).toBeLessThanOrEqual(rightMin);
+            }
+        });
+
+        it('leftmost leaf overflow → full right-shift of keys/children', () => {
+            // Overflow leftmost child specifically
+            btree.insert(5);
+            btree.insert(7);
+            btree.insert(8);
+            btree.insert(6);
+
+            const root = btree.root;
+            const children = root.children.filter(Boolean);
+
+            expect(root.keyCount).toBe(3);
+
+            // First two children separated by root.keys[0]
+            expect(children[0].keys[children[0].keyCount - 1]).toBeLessThanOrEqual(root.keys[0]);
+            expect(root.keys[0]).toBeLessThanOrEqual(children[1].keys[0]);
+
+            expect(children[0].keyCount).toBe(3); // new left child
+            expect(children[0].keys.filter(Boolean)).toEqual([5, 6, 7]);
+            expect(children[1].keyCount).toBe(2); // new right child
+            expect(children[1].keys.filter(Boolean)).toEqual([10, 20]);
+            expect(children[2].keys[0]).toBe(40); // unchanged rightmost
+        });
+
+        it('rightmost leaf overflow → full left-shift of keys/children', () => {
+            // Overflow rightmost child
+            btree.insert(75);
+            btree.insert(72);
+            btree.insert(73);
+            btree.insert(74);
+
+            const root = btree.root;
+            const children = root.children.filter(Boolean);
+            const lastRootKey = root.keys[root.keyCount - 1];
+
+            expect(root.keyCount).toBe(3);
+
+            // Last two children separated by final root key
+            expect(children[children.length - 2].keys[children[children.length - 2].keyCount - 1])
+                .toBeLessThanOrEqual(lastRootKey);
+            expect(lastRootKey).toBeLessThanOrEqual(children[children.length - 1].keys[0]);
+
+            expect(children[1].keys[0]).toBe(40); // unchanged rightmost
+            expect(children[2].keyCount).toBe(2); // new left child
+            expect(children[2].keys.filter(Boolean)).toEqual([70, 72]);
+            expect(children[3].keyCount).toBe(3); // new right child
+            expect(children[3].keys.filter(Boolean)).toEqual([74, 75, 80]);
+        });
+
+        it('promotion maintains search invariants across all children', () => {
+            // Multiple splits across different children
+            [-2, 12, 35, 62, 78].forEach(k => btree.insert(k));
+
+            // All original + new keys searchable
+            [10, 20, 30, 40, 50, 60, 70, -2, 12, 35, 62, 78].forEach(key => {
+                const node = btree.search(key);
+                expect(node).toBeDefined();
+                expect(node.keys.slice(0, node.keyCount)).toContain(key);
+            });
+
+            // Non-existing key → correct leaf
+            const targetNode = btree.search(15, false)
+            expect(targetNode.isLeaf()).toBe(true);
+            expect(targetNode.keys.filter(Boolean)).toEqual([-2, 10, 12, 20])
+        });
+
+        it('all new siblings have correct parent pointers', () => {
+            btree.insert(22); btree.insert(25); btree.insert(28); btree.insert(26);
+
+            const root = btree.root;
+            const children = root.children;
+
+            // All non-null children point to root
+            for (let i = 0; i < children.length; i++) {
+                if (children[i]) {
+                    expect(children[i].parent).toBe(root);
+                }
+            }
+        });
+    });
+
 
 
 

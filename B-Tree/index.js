@@ -21,65 +21,83 @@ class Node {
       return null;
     }
 
-    // Step 2: node overflow split and propagate median key upwards
-    let currentNode = this;
-    let newRoot = null;
+    // Step 2: node overflow split and propagate median key upwards recursively
+    const splitResult = this.splitAtMedian();
 
-    while (currentNode && currentNode.keyCount === currentNode.order) {
-      const { medianKey, leftNode, rightNode } = currentNode.splitAtMedian();
-      const parent = currentNode.parent;
+    // Case 1: current node is root. Create new root
+    if (!this.parent) {
+      const { medianKey, leftNode, rightNode } = splitResult;
+      const rootNode = new Node(this.order);
+      rootNode.keys[0] = medianKey;
+      rootNode.keyCount = 1;
+      rootNode.children[0] = leftNode;
+      rootNode.children[1] = rightNode;
 
-      // Case 1: current node is root create new root
-      if (!parent) {
-        const rootNode = new Node(this.order);
-        rootNode.keys[0] = medianKey;
-        rootNode.keyCount = 1;
-        rootNode.children[0] = leftNode;
-        rootNode.children[1] = rightNode;
+      leftNode.parent = rootNode;
+      rightNode.parent = rootNode;
 
-        // Update parent pointers for split children
-        leftNode.parent = rootNode;
-        rightNode.parent = rootNode;
-
-        newRoot = rootNode;
-        break;
-      }
-
-      // Case 2: current node has a parent insert median into parent
-      const childIndexInParent = parent.children.indexOf(currentNode);
-
-      // Insert medianKey into parent's keys at position childIndexInParent
-      let parentKeyIdx = parent.keyCount - 1;
-      while (parentKeyIdx >= childIndexInParent) {
-        parent.keys[parentKeyIdx + 1] = parent.keys[parentKeyIdx];
-        parentKeyIdx--;
-      }
-      parent.keys[childIndexInParent] = medianKey;
-      parent.keyCount++;
-
-      // Shift parent's children to the right to make room for rightNode
-      let parentChildIdx = parent.keyCount;
-      while (parentChildIdx > childIndexInParent + 1) {
-        parent.children[parentChildIdx] = parent.children[parentChildIdx - 1];
-        parentChildIdx--;
-      }
-
-      // Replace old child (currentNode) with leftNode and insert rightNode next to it
-      parent.children[childIndexInParent] = leftNode;
-      parent.children[childIndexInParent + 1] = rightNode;
-      leftNode.parent = parent;
-      rightNode.parent = parent;
-
-      // Continue bubbling up if parent now overflows
-      currentNode = parent;
+      return rootNode;
     }
 
-    return newRoot;
+    // Case 2: current node has a parent, delegate split handling to parent
+    return this.parent.handleChildSplit(splitResult, this);
+  }
+
+  handleChildSplit(splitResult, oldChild) {
+    const { medianKey, leftNode, rightNode } = splitResult;
+    const childIndex = this.children.indexOf(oldChild);
+
+    // Insert medianKey into this node's keys at the child index
+    let keyIdx = this.keyCount - 1;
+    while (keyIdx >= childIndex) {
+      this.keys[keyIdx + 1] = this.keys[keyIdx];
+      keyIdx--;
+    }
+    this.keys[childIndex] = medianKey;
+    this.keyCount++;
+
+    // Shift children to the right to make room for rightNode
+    let childIdx = this.keyCount;
+    while (childIdx > childIndex + 1) {
+      this.children[childIdx] = this.children[childIdx - 1];
+      childIdx--;
+    }
+
+    this.children[childIndex] = leftNode;
+    this.children[childIndex + 1] = rightNode;
+    leftNode.parent = this;
+    rightNode.parent = this;
+
+    // If this node is within capacity after absorbing the split, we're done
+    if (this.keyCount < this.order) {
+      return null;
+    }
+
+    // Node overflow: split this node and let its parent handle the promotion
+    const parentSplitResult = this.splitAtMedian();
+    const {
+      medianKey: parentMedian,
+      leftNode: parentLeft,
+      rightNode: parentRight,
+    } = parentSplitResult;
+
+    if (!this.parent) {
+      const rootNode = new Node(this.order);
+      rootNode.keys[0] = parentMedian;
+      rootNode.keyCount = 1;
+      rootNode.children[0] = parentLeft;
+      rootNode.children[1] = parentRight;
+
+      parentLeft.parent = rootNode;
+      parentRight.parent = rootNode;
+
+      return rootNode;
+    }
+
+    return this.parent.handleChildSplit(parentSplitResult, this);
   }
 
   splitAtMedian() {
-    // split left keys and left children
-    // split right keys and children
     const medianIdx = Math.floor((this.keyCount - 1) / 2);
     const medianKey = this.keys[medianIdx];
 
@@ -202,11 +220,5 @@ class BTree {
     }
   }
 }
-
-// insert
-// 1. isnert at root
-// 2. find correct poisiont of key insert there.
-// 3. find correct node, insert there
-// 3.1. IF node is overfilling, split it, push mid to parent
 
 module.exports = BTree;

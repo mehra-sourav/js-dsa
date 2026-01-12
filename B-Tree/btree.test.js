@@ -485,6 +485,159 @@ describe('BTree tests', () => {
     });
   });
 
+  describe('BTree Delete', () => {
+    function height(node) {
+      if (!node || node.isLeaf()) return 1;
+      return (
+        1 +
+        Math.max(...node.children.filter(Boolean).map((child) => height(child)))
+      );
+    }
+
+    function expectValidBTree(btree) {
+      if (!btree.root) return;
+      const maxKeys = btree.order - 1;
+      const minKeys = Math.floor((btree.order - 1) / 2);
+
+      const queue = [btree.root];
+      while (queue.length) {
+        const node = queue.shift();
+
+        expect(node.keyCount).toBeLessThanOrEqual(maxKeys);
+        if (node !== btree.root) {
+          expect(node.keyCount).toBeGreaterThanOrEqual(minKeys);
+        }
+
+        if (!node.isLeaf()) {
+          node.children.filter(Boolean).forEach((c) => queue.push(c));
+        }
+      }
+
+      const leaves = findAllLeaves(btree.root);
+      const leafDepths = leaves.map((leaf) => getDepth(btree.root, leaf));
+      expect(new Set(leafDepths).size).toBe(1);
+    }
+
+    it('delete on empty tree -> returns false and keeps root null', () => {
+      const btree = new BTree(3);
+      expect(btree.root).toBeNull();
+      const result = btree.delete(10);
+      expect(result).toBe(false);
+      expect(btree.root).toBeNull();
+    });
+
+    it('delete non-existing key -> returns false and does not modify keys', () => {
+      const btree = new BTree(3);
+      [10, 20, 30].forEach((k) => btree.insert(k));
+
+      const result = btree.delete(99);
+      expect(result).toBe(false);
+
+      [10, 20, 30].forEach((key) => {
+        const node = btree.search(key);
+        expect(node).toBeDefined();
+        expect(node.keys.slice(0, node.keyCount)).toContain(key);
+      });
+      expectValidBTree(btree);
+    });
+
+    it('deleting leaf key in single-node tree without underflow', () => {
+      const btree = new BTree(3); // max 2 keys, min 1
+      btree.insert(10);
+      btree.insert(20); // root leaf with 2 keys
+
+      const result = btree.delete(10);
+      expect(result).toBe(true);
+
+      const root = btree.root;
+      expect(root).toBeDefined();
+      expect(root.isLeaf()).toBe(true);
+      expect(root.keyCount).toBe(1);
+      expect(root.keys[0]).toBe(20);
+      expectValidBTree(btree);
+    });
+
+    it('deleting last key from single-node tree empties tree', () => {
+      const btree = new BTree(3);
+      btree.insert(42);
+
+      const result = btree.delete(42);
+      expect(result).toBe(true);
+      expect(btree.root).toBeNull();
+    });
+
+    it('delete leaf key in multi-level tree keeps tree balanced', () => {
+      const btree = new BTree(3);
+      [10, 15, 20, 25, 30].forEach((k) => btree.insert(k));
+
+      expect(height(btree.root)).toBeGreaterThanOrEqual(2);
+
+      const result = btree.delete(15);
+      expect(result).toBe(true);
+      expect(btree.search(15)).toBe(false);
+
+      [10, 20, 25, 30].forEach((key) => {
+        const node = btree.search(key);
+        expect(node).toBeDefined();
+        expect(node.keys.slice(0, node.keyCount)).toContain(key);
+      });
+
+      expectValidBTree(btree);
+    });
+
+    it('delete internal root key with merge reduces height', () => {
+      const btree = new BTree(3);
+      [10, 20, 30].forEach((k) => btree.insert(k));
+
+      const beforeHeight = height(btree.root);
+      expect(beforeHeight).toBe(2); // root + 2 leaves
+
+      const result = btree.delete(20); // root key
+      expect(result).toBe(true);
+
+      const afterHeight = btree.root ? height(btree.root) : 0;
+      expect(afterHeight).toBe(1); // single leaf root
+
+      const root = btree.root;
+      expect(root).toBeDefined();
+      expect(root.isLeaf()).toBe(true);
+      expect(root.keyCount).toBe(2);
+      expect(root.keys.slice(0, root.keyCount)).toEqual([10, 30]);
+      expectValidBTree(btree);
+    });
+
+    it('multiple deletions maintain invariants and eventually empty the tree', () => {
+      const btree = new BTree(3);
+      const keys = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+      keys.forEach((k) => btree.insert(k));
+
+      const initialHeight = height(btree.root);
+      expect(initialHeight).toBeGreaterThanOrEqual(2);
+
+      [2, 4, 6, 8].forEach((k) => {
+        expect(btree.delete(k)).toBe(true);
+      });
+
+      [1, 3, 5, 7, 9].forEach((k) => {
+        const node = btree.search(k);
+        expect(node).toBeDefined();
+        expect(node.keys.slice(0, node.keyCount)).toContain(k);
+      });
+
+      [2, 4, 6, 8].forEach((k) => {
+        expect(btree.search(k)).toBe(false);
+      });
+
+      expectValidBTree(btree);
+
+      [1, 3, 5, 7, 9].forEach((k) => {
+        expect(btree.delete(k)).toBe(true);
+      });
+
+      expect(btree.root).toBeNull();
+    });
+  });
+
   // Helpers
   function findAllLeaves(node) {
     if (!node) return [];

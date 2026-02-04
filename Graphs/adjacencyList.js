@@ -171,40 +171,47 @@ class AdjacencyListGraph {
     };
   }
 
-  // /**
-  //  * Traverses the graph using breadth first search algorithm
-  //  * !Time Complexity: O(n)
-  //  * !Space Complexity: O(1)
-  //  */
-  // bfsTraversal() {
-  //   let startNode = Object.keys(this.adjacencyList)[0];
-  //   let queue = [startNode];
-  //   let visitedNodes = new Set();
+  /**
+   * Traverses the graph using breadth first search algorithm
+   * !Time Complexity: O(n)
+   * !Space Complexity: O(1)
+   * @param {number} [start] - The starting vertex.
+   * @returns {number[]} An array of vertices in BFS visit order starting from `start`.
+  */
+  bfsTraversal(start) {
+    let startNode = start ?? Object.keys(this.adjacencyList)[0];
+    if (!this.hasVertex(startNode)) return [];
 
-  //   while (queue.length) {
-  //     // Popping out an item from queue
-  //     let currentNode = queue.shift();
+    const visitedNodes = new Set();
+    const queue = [startNode];
+    const result = [];
 
-  //     let currentNodeKey = currentNode.toString();
-  //     if (visitedNodes.has(currentNodeKey)) continue;
+    // Keep on iterating till queue has elements
+    while (queue.length > 0) {
+      const currentNode = queue.shift();
+      // const currentNodeKey = String(currentNode)
 
-  //     process.stdout.write(`${currentNode} `);
+      // Skip if current node is already visited
+      if (visitedNodes.has(currentNode)) continue;
 
-  //     // Extracting the neighbours of the current node
-  //     let currentNodeNeighbours = this.adjacencyList[currentNode];
-  //     currentNodeNeighbours?.forEach((node) => {
-  //       let key = node.toString();
+      const currentNodeNeighbours = this.getNeighbours(currentNode);
 
-  //       // Adding the neighbour node to the queue only if it's not visited
-  //       if (!visitedNodes.has(key)) {
-  //         queue.push(node);
-  //       }
-  //     });
+      // Print current node
+      result.push(currentNode)
 
-  //     // Marking the current node as visited;
-  //     visitedNodes.add(currentNodeKey);
-  //   }
-  // }
+      // Add neighbours of current node to queue if they are not already visited
+      for (const node of currentNodeNeighbours) {
+        if (!visitedNodes.has(node)) {
+          queue.push(node)
+        }
+      }
+
+      // Mark current node as visited
+      visitedNodes.add(currentNode);
+    }
+
+    return result;
+  }
 
   // /**
   //  * Traverses the graph using depth first search algorithm

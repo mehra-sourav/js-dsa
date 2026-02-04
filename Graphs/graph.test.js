@@ -302,6 +302,52 @@ function runGraphTests(GraphClass) {
       });
     });
 
+    describe('BFS Traversal', () => {
+      it('should return [] when start vertex does not exist', () => {
+        const graph = new GraphClass(false, 1, 2, 3);
+        expect(graph.bfsTraversal(999)).toEqual([]);
+      });
+
+      it('should traverse a connected undirected graph in BFS order', () => {
+        const graph = new GraphClass(false, 1, 2, 3, 4, 5, 6);
+        graph.addEdge(1, 2);
+        graph.addEdge(1, 3);
+        graph.addEdge(2, 4);
+        graph.addEdge(2, 5);
+        graph.addEdge(3, 6);
+
+        expect(graph.bfsTraversal(1)).toEqual([1, 2, 3, 4, 5, 6]);
+      });
+
+      it('should only traverse the connected component of the start vertex', () => {
+        const graph = new GraphClass(false, 1, 2, 3, 4, 5);
+        graph.addEdge(1, 2);
+        graph.addEdge(2, 3);
+        graph.addEdge(4, 5);
+
+        expect(graph.bfsTraversal(4)).toEqual([4, 5]);
+      });
+
+      it('should respect directed edges (only follow outgoing edges)', () => {
+        const graph = new GraphClass(true, 1, 2, 3, 4);
+        graph.addEdge(1, 2);
+        graph.addEdge(2, 3);
+        graph.addEdge(4, 1);
+
+        expect(graph.bfsTraversal(1)).toEqual([1, 2, 3]);
+        expect(graph.bfsTraversal(4)).toEqual([4, 1, 2, 3]);
+      });
+
+      it('should handle cycles without infinite loops', () => {
+        const graph = new GraphClass(false, 1, 2, 3);
+        graph.addEdge(1, 2);
+        graph.addEdge(2, 3);
+        graph.addEdge(3, 1);
+
+        expect(graph.bfsTraversal(1)).toEqual([1, 2, 3]);
+      });
+    });
+
     describe("Helper Methods", () => {
       it("should return the correct size (number of vertices) of the graph", () => {
         const graph = new GraphClass(false, 1, 2, 3);

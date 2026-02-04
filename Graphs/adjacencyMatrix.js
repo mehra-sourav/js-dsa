@@ -92,6 +92,41 @@ class AdjacencyMatrixGraph {
     return [source, destination, weight];
   }
 
+  bfsTraversal(start) {
+    let startNode = start ?? this.vertices[0];
+    if (!this.hasVertex(startNode)) return [];
+
+    const visitedNodes = new Set();
+    const queue = [startNode];
+    const result = [];
+
+    // Keep on iterating till queue has elements
+    while(queue.length > 0) {
+      const currentNode = queue.shift();
+      // const currentNodeKey = String(currentNode)
+
+      // Skip if current node is already visited
+      if (visitedNodes.has(currentNode)) continue;
+
+      const currentNodeNeighbours = this.getNeighbours(currentNode);
+
+      // Print current node
+      result.push(currentNode)
+      
+      // Add neighbours of current node to queue if they are not already visited
+      for (const node of currentNodeNeighbours) {
+        if (!visitedNodes.has(node)) {
+          queue.push(node)
+        }
+      }
+
+      // Mark current node as visited
+      visitedNodes.add(currentNode);
+    }
+
+    return result;
+  }
+
   /**
    * Removes the edge(s) between the two provided vertices
    * !Time Complexity: O(1)

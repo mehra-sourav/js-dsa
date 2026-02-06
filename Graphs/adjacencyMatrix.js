@@ -92,6 +92,13 @@ class AdjacencyMatrixGraph {
     return [source, destination, weight];
   }
 
+  /**
+   * Traverses the graph using breadth first search algorithm
+   * !Time Complexity: O(n)
+   * !Space Complexity: O(1)
+   * @param {number} [start] - The starting vertex.
+   * @returns {number[]} An array of vertices in BFS visit order starting from `start`.
+  */
   bfsTraversal(start) {
     let startNode = start ?? this.vertices[0];
     if (!this.hasVertex(startNode)) return [];
@@ -125,6 +132,48 @@ class AdjacencyMatrixGraph {
     }
 
     return result;
+  }
+
+  /**
+   * Traverses the graph using depth first search algorithm
+   * !Time Complexity: O(n)
+   * !Space Complexity: O(1)
+   * @param {number} [start] - The starting vertex.
+   * @returns {number[]} An array of vertices in DFS visit order starting from `start`.
+  */
+  dfsTraversal(start) {
+    let startNode = start ?? this.vertices[0];
+
+    if (!this.hasVertex(startNode)) return [];
+
+    const visitedNodes = new Set();
+    const stack = [startNode];
+    const results = [];
+
+    // Keep on iterating till stack has elements
+    while (stack.length > 0) {
+      const currentNode = stack.pop();
+
+      // Skip if current node is already visited
+      if (visitedNodes.has(currentNode)) continue;
+
+      const currentNodeNeighbours = this.getNeighbours(currentNode);
+
+      // Add current node to result
+      results.push(currentNode);
+
+      // Add neighbours of current node to stack if they are not already visited
+      for (const node of currentNodeNeighbours) {
+        if (!visitedNodes.has(node)) {
+          stack.push(node);
+        }
+      }
+
+      // Mark current node as visited
+      visitedNodes.add(currentNode);
+    }
+
+    return results;
   }
 
   /**

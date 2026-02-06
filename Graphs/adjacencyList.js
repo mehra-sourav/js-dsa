@@ -213,40 +213,47 @@ class AdjacencyListGraph {
     return result;
   }
 
-  // /**
-  //  * Traverses the graph using depth first search algorithm
-  //  * !Time Complexity: O(n)
-  //  * !Space Complexity: O(1)
-  //  */
-  // dfsTraversal() {
-  //   let startNode = Object.keys(this.adjacencyList)[0];
-  //   let stack = [startNode];
-  //   let visitedNodes = new Set();
+  /**
+   * Traverses the graph using depth first search algorithm
+   * !Time Complexity: O(n)
+   * !Space Complexity: O(1)
+   * @param {number} [start] - The starting vertex.
+   * @returns {number[]} An array of vertices in DFS visit order starting from `start`.
+  */
+  dfsTraversal(start) {
+    let startNode = start ?? Object.keys(this.adjacencyList)[0];
 
-  //   while (stack.length) {
-  //     // Popping out an item from stack
-  //     let currentNode = stack.pop();
-  //     let currentNodeKey = currentNode.toString();
+    if (!this.hasVertex(startNode)) return [];
 
-  //     if (visitedNodes.has(currentNodeKey)) continue;
+    const visitedNodes = new Set();
+    const stack = [startNode];
+    const results = [];
 
-  //     process.stdout.write(`${currentNode} `);
+    // Keep on iterating till stack has elements
+    while (stack.length > 0) {
+      const currentNode = stack.pop();
 
-  //     // Extracting the neighbours of the current node
-  //     let currentNodeNeighbours = this.adjacencyList[currentNode];
-  //     currentNodeNeighbours?.forEach((node) => {
-  //       let key = node.toString();
+      // Skip if current node is already visited
+      if (visitedNodes.has(currentNode)) continue;
 
-  //       // Adding the neighbour node to the stack only if it's not visited
-  //       if (!visitedNodes.has(key)) {
-  //         stack.push(key);
-  //       }
-  //     });
+      const currentNodeNeighbours = this.getNeighbours(currentNode);
 
-  //     // Marking the current node as visited;
-  //     visitedNodes.add(currentNodeKey);
-  //   }
-  // }
+      // Add current node to result
+      results.push(currentNode);
+
+      // Add neighbours of current node to stack if they are not already visited
+      for (const node of currentNodeNeighbours) {
+        if (!visitedNodes.has(node)) {
+          stack.push(node);
+        }
+      }
+
+      // Mark current node as visited
+      visitedNodes.add(currentNode);
+    }
+
+    return results;
+  }
 
   /**
    * Returns the number of nodes in the graph

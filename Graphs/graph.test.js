@@ -308,6 +308,15 @@ function runGraphTests(GraphClass) {
         expect(graph.bfsTraversal(999)).toEqual([]);
       });
 
+      it('should start from the first vertex when no start vertex is provided', () => {
+        const graph = new GraphClass(false, 1, 2, 3, 4);
+        graph.addEdge(1, 2);
+        graph.addEdge(1, 3);
+        graph.addEdge(2, 4);
+
+        expect(graph.bfsTraversal()).toEqual([1, 2, 3, 4]);
+      });
+
       it('should traverse a connected undirected graph in BFS order', () => {
         const graph = new GraphClass(false, 1, 2, 3, 4, 5, 6);
         graph.addEdge(1, 2);
@@ -345,6 +354,61 @@ function runGraphTests(GraphClass) {
         graph.addEdge(3, 1);
 
         expect(graph.bfsTraversal(1)).toEqual([1, 2, 3]);
+      });
+    });
+
+    describe('DFS Traversal', () => {
+      it('should return [] when start vertex does not exist', () => {
+        const graph = new GraphClass(false, 1, 2, 3);
+        expect(graph.dfsTraversal(999)).toEqual([]);
+      });
+
+      it('should start from the first vertex when no start vertex is provided', () => {
+        const graph = new GraphClass(false, 1, 2, 3, 4);
+        graph.addEdge(1, 2);
+        graph.addEdge(1, 3);
+        graph.addEdge(2, 4);
+
+        expect(graph.dfsTraversal()).toEqual([1, 3, 2, 4]);
+      });
+
+      it('should traverse a connected undirected graph in DFS order', () => {
+        const graph = new GraphClass(false, 1, 2, 3, 4, 5, 6);
+        graph.addEdge(1, 2);
+        graph.addEdge(1, 3);
+        graph.addEdge(2, 4);
+        graph.addEdge(2, 5);
+        graph.addEdge(3, 6);
+
+        expect(graph.dfsTraversal(1)).toEqual([1, 3, 6, 2, 5, 4]);
+      });
+
+      it('should only traverse the connected component of the start vertex', () => {
+        const graph = new GraphClass(false, 1, 2, 3, 4, 5);
+        graph.addEdge(1, 2);
+        graph.addEdge(2, 3);
+        graph.addEdge(4, 5);
+
+        expect(graph.dfsTraversal(4)).toEqual([4, 5]);
+      });
+
+      it('should respect directed edges (only follow outgoing edges)', () => {
+        const graph = new GraphClass(true, 1, 2, 3, 4);
+        graph.addEdge(1, 2);
+        graph.addEdge(2, 3);
+        graph.addEdge(4, 1);
+
+        expect(graph.dfsTraversal(1)).toEqual([1, 2, 3]);
+        expect(graph.dfsTraversal(4)).toEqual([4, 1, 2, 3]);
+      });
+
+      it('should handle cycles without infinite loops', () => {
+        const graph = new GraphClass(false, 1, 2, 3);
+        graph.addEdge(1, 2);
+        graph.addEdge(2, 3);
+        graph.addEdge(3, 1);
+
+        expect(graph.dfsTraversal(1)).toEqual([1, 3, 2]);
       });
     });
 

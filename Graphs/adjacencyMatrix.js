@@ -110,7 +110,6 @@ class AdjacencyMatrixGraph {
     // Keep on iterating till queue has elements
     while(queue.length > 0) {
       const currentNode = queue.shift();
-      // const currentNodeKey = String(currentNode)
 
       // Skip if current node is already visited
       if (visitedNodes.has(currentNode)) continue;

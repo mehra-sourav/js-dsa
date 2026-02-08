@@ -179,7 +179,7 @@ class AdjacencyListGraph {
    * @returns {number[]} An array of vertices in BFS visit order starting from `start`.
   */
   bfsTraversal(start) {
-    let startNode = start ?? Object.keys(this.adjacencyList)[0];
+    let startNode = start ?? Number(Object.keys(this.adjacencyList)[0]);
     if (!this.hasVertex(startNode)) return [];
 
     const visitedNodes = new Set();
@@ -189,7 +189,6 @@ class AdjacencyListGraph {
     // Keep on iterating till queue has elements
     while (queue.length > 0) {
       const currentNode = queue.shift();
-      // const currentNodeKey = String(currentNode)
 
       // Skip if current node is already visited
       if (visitedNodes.has(currentNode)) continue;
@@ -221,7 +220,7 @@ class AdjacencyListGraph {
    * @returns {number[]} An array of vertices in DFS visit order starting from `start`.
   */
   dfsTraversal(start) {
-    let startNode = start ?? Object.keys(this.adjacencyList)[0];
+    let startNode = start ?? Number(Object.keys(this.adjacencyList)[0]);
 
     if (!this.hasVertex(startNode)) return [];
 

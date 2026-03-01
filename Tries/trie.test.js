@@ -7,13 +7,13 @@ const buildTrie = (words = []) => {
 };
 
 describe('Trie', () => {
-  test('insert + has should find inserted words', () => {
+  test('insert + hasWord should find inserted words', () => {
     const trie = buildTrie(['cat', 'car', 'care']);
 
-    expect(trie.has('cat')).toBe(true);
-    expect(trie.has('car')).toBe(true);
-    expect(trie.has('care')).toBe(true);
-    expect(trie.has('cap')).toBe(false);
+    expect(trie.hasWord('cat')).toBe(true);
+    expect(trie.hasWord('car')).toBe(true);
+    expect(trie.hasWord('care')).toBe(true);
+    expect(trie.hasWord('cap')).toBe(false);
   });
 
   test('delete removes only the target word when siblings share prefix', () => {
@@ -21,9 +21,9 @@ describe('Trie', () => {
 
     trie.delete('card');
 
-    expect(trie.has('card')).toBe(false);
-    expect(trie.has('car')).toBe(true);
-    expect(trie.has('care')).toBe(true);
+    expect(trie.hasWord('card')).toBe(false);
+    expect(trie.hasWord('car')).toBe(true);
+    expect(trie.hasWord('care')).toBe(true);
   });
 
   test('deleting a prefix word keeps longer words intact', () => {
@@ -31,8 +31,8 @@ describe('Trie', () => {
 
     trie.delete('hell');
 
-    expect(trie.has('hell')).toBe(false);
-    expect(trie.has('hello')).toBe(true);
+    expect(trie.hasWord('hell')).toBe(false);
+    expect(trie.hasWord('hello')).toBe(true);
   });
 
   test('deleting last word empties trie but keeps root intact', () => {
@@ -40,10 +40,10 @@ describe('Trie', () => {
 
     trie.delete('a');
 
-    expect(trie.has('a')).toBe(false);
+    expect(trie.hasWord('a')).toBe(false);
     expect(trie.root).toBeDefined();
     expect(trie.root.children.size).toBe(0);
-    expect(trie.root.endOfWord).toBe(false);
+    expect(trie.root.isEndOfWord).toBe(false);
   });
 
   test('deleting longer word preserves shorter prefix word', () => {
@@ -51,8 +51,8 @@ describe('Trie', () => {
 
     trie.delete('ab');
 
-    expect(trie.has('a')).toBe(true);
-    expect(trie.has('ab')).toBe(false);
+    expect(trie.hasWord('a')).toBe(true);
+    expect(trie.hasWord('ab')).toBe(false);
   });
 
   test('deleting non-existent word leaves existing words unchanged', () => {
@@ -60,7 +60,50 @@ describe('Trie', () => {
 
     trie.delete('cab');
 
-    expect(trie.has('cat')).toBe(true);
-    expect(trie.has('car')).toBe(true);
+    expect(trie.hasWord('cat')).toBe(true);
+    expect(trie.hasWord('car')).toBe(true);
+  });
+
+  test('insert returns the word for new entries and false for duplicates', () => {
+    const trie = new Trie();
+
+    const firstInsert = trie.insert('cat');
+    const secondInsert = trie.insert('cat');
+
+    expect(firstInsert).toBe('cat');
+    expect(secondInsert).toBe(false);
+  });
+
+  test('hasPrefix returns true for existing prefixes and full words', () => {
+    const trie = buildTrie(['car', 'card', 'care']);
+
+    expect(trie.hasPrefix('c')).toBe(true);
+    expect(trie.hasPrefix('car')).toBe(true);
+    expect(trie.hasPrefix('care')).toBe(true);
+    expect(trie.hasPrefix('cares')).toBe(false);
+  });
+
+  test('hasPrefix returns true for empty prefix', () => {
+    const trie = buildTrie(['cat']);
+
+    expect(trie.hasPrefix('')).toBe(true);
+  });
+
+  test('delete returns null when deleting a non-existent word', () => {
+    const trie = buildTrie(['cat']);
+
+    const result = trie.delete('dog');
+
+    expect(result).toBeNull();
+    expect(trie.hasWord('cat')).toBe(true);
+  });
+
+  test('delete returns undefined when deleting an existing word', () => {
+    const trie = buildTrie(['cat']);
+
+    const result = trie.delete('cat');
+
+    expect(result).toBeUndefined();
+    expect(trie.hasWord('cat')).toBe(false);
   });
 });

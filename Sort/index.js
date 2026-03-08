@@ -1,1 +1,3 @@
-export { quickSort } from './quickSort.js'
+const quickSort = require('./quickSort.js')
+
+module.exports = { quickSort };

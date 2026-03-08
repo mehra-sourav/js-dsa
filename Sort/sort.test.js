@@ -54,5 +54,59 @@ function runSortTests(sortName, sortFn) {
   });
 }
 
+// ---------- Stability detection ----------
+ 
+// List of algorithms that are KNOWN to be unstable
+// (theoretical property of the algorithm)
+const UNSTABLE_SORTS = new Set(["Quick Sort"]);
+ 
+// Detect if an implementation is stable in practice
+function isStable(sortFn) {
+  // All elements have the same "key" but different ids.
+  // A stable sort must keep ids in the same relative order.
+  const arr = [
+    { key: 1, id: "a" },
+    { key: 1, id: "b" },
+    { key: 1, id: "c" },
+    { key: 1, id: "d" },
+  ];
+ 
+  const originalOrder = arr.map((item) => item.id);
+ 
+  // Our sorting functions compare items directly with <, >, <=.
+  // For plain objects, JS compares their string forms, which are equal,
+  // so "greater than" is always false. Stable algorithms won't swap them;
+  // quick sort will move the pivot and change the order.
+  sortFn(arr);
+
+  const newOrder = arr.map((item) => item.id);
+ 
+  if (originalOrder.length !== newOrder.length) return false;
+ 
+  for (let i = 0; i < originalOrder.length; i++) {
+    if (originalOrder[i] !== newOrder[i]) {
+      return false; // relative order changed -> unstable
+    }
+  }
+  return true;
+}
+ 
+function runStabilityTests(sortName, sortFn) {
+  describe(`Stability tests for ${sortName}`, () => {
+    test(
+      `is ${UNSTABLE_SORTS.has(sortName) ? "unstable" : "stable"} as expected`,
+      () => {
+        const expectedStable = !UNSTABLE_SORTS.has(sortName);
+        const actualStable = isStable(sortFn);
+        
+        expect(actualStable).toBe(expectedStable);
+      }
+    );
+  });
+}
+
 // Register all sort implementations you want to test
-runSortTests("quickSort", quickSort);
+runSortTests("Quick Sort", quickSort);
+
+// Stability (uses name + internal UNSTABLE_SORTS list)
+runStabilityTests("Quick Sort", quickSort);

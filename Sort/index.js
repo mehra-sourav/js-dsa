@@ -1,1 +1,1 @@
-export {quickSort} from './quickSort.js'
+export { quickSort } from './quickSort.js'

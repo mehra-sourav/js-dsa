@@ -1,4 +1,4 @@
-const { quickSort } = require("./index.js");
+const { quickSort, mergeSort } = require("./index.js");
 
 function runSortTests(sortName, sortFn) {
   describe(`Sort tests for ${sortName}`, () => {
@@ -107,6 +107,8 @@ function runStabilityTests(sortName, sortFn) {
 
 // Register all sort implementations you want to test
 runSortTests("Quick Sort", quickSort);
+runSortTests("Merge Sort", mergeSort);
 
 // Stability (uses name + internal UNSTABLE_SORTS list)
 runStabilityTests("Quick Sort", quickSort);
+runStabilityTests("Merge Sort", mergeSort);

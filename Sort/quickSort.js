@@ -18,7 +18,7 @@ const quickSort = (arr) => {
  * @param {number} right Right index of the current subarray.
  */
 const quickSortHelper = (arr, left, right) => {
-    // If there portion of the array has one or zero elements, it's already sorted
+    // If the array has one or zero elements, it's already sorted
     if (left >= right) return;
 
     const pivotIndex = partition(arr, left, right);

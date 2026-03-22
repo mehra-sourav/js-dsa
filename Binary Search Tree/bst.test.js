@@ -37,15 +37,49 @@ describe("Binary Search Tree (BST)", () => {
     test("size() should update correctly after insertions", () => {
       const bst = new BST();
       expect(bst.size()).toBe(0);
+      expect(bst.height()).toBe(0);
 
       bst.insert(10);
       expect(bst.size()).toBe(1);
+      expect(bst.height()).toBe(1);
 
       bst.insert(5);
       expect(bst.size()).toBe(2);
+      expect(bst.height()).toBe(2);
 
       bst.insert(15);
       expect(bst.size()).toBe(3);
+      expect(bst.height()).toBe(2);
+    });
+
+    test("size() should decrease after deletions", () => {
+      const bst = new BST(10, 5, 15, 3, 7);
+      expect(bst.size()).toBe(5);
+
+      bst.delete(3); // Delete leaf
+      expect(bst.size()).toBe(4);
+
+      bst.delete(5); // Delete node with one child
+      expect(bst.size()).toBe(3);
+
+      bst.delete(10); // Delete root with two children
+      expect(bst.size()).toBe(2);
+
+      // Cross-check: height updates after deletions
+      expect(bst.height()).toBe(2);
+    });
+
+    test("isEmpty() should become true after deleting all nodes", () => {
+      const bst = new BST(10, 5, 15);
+      expect(bst.isEmpty()).toBe(false);
+
+      bst.delete(10);
+      bst.delete(5);
+      bst.delete(15);
+
+      expect(bst.isEmpty()).toBe(true);
+      expect(bst.size()).toBe(0);
+      expect(bst.height()).toBe(0);
     });
   });
 
@@ -65,11 +99,19 @@ describe("Binary Search Tree (BST)", () => {
       bst.insert(7);
 
       expect(bst.inOrderTraversal()).toEqual([3, 5, 7, 10, 15]);
+
+      expect(bst.size()).toBe(5);
+      expect(bst.height()).toBe(3);
+      expect(bst.findMin()).toBe(3);
+      expect(bst.findMax()).toBe(15);
     });
 
     test("should handle duplicate insertions gracefully", () => {
       const bst = new BST(10, 5, 5, 10);
       expect(bst.inOrderTraversal()).toEqual([5, 10]);
+
+      expect(bst.size()).toBe(2);
+      expect(bst.height()).toBe(2);
     });
 
     test("should insert negative numbers", () => {
@@ -104,12 +146,15 @@ describe("Binary Search Tree (BST)", () => {
       expect(bst.search(20)).toBe(true);
     });
 
-    test("should return null for values not in the tree", () => {
+    test("should return null for non-existent values", () => {
       const bst = new BST(10, 5, 15);
 
       expect(bst.search(100)).toBe(null);
-      expect(bst.search(-100)).toBe(null);
-      expect(bst.search(0)).toBe(null);
+      expect(bst.search(-50)).toBe(null);
+      expect(bst.search(7)).toBe(null);
+
+      expect(bst.search(5, bst.root.right)).toBe(null); // 5 not in right subtree (node 15)
+      expect(bst.search(15, bst.root.right)).toBe(true); // Found in right subtree
     });
 
     test("should return null when searching empty tree", () => {
@@ -141,10 +186,18 @@ describe("Binary Search Tree (BST)", () => {
   describe("Deletion", () => {
     test("delete() should remove a leaf node", () => {
       const bst = new BST(10, 5, 15);
+      const initialSize = bst.size();
+      const initialHeight = bst.height();
+
       expect(bst.delete(5)).toBe(true);
       expect(bst.search(5)).toBe(null);
       expect(bst.search(10)).toBe(true);
       expect(bst.search(15)).toBe(true);
+
+      expect(bst.size()).toBe(initialSize - 1);
+      expect(bst.height()).toBe(initialHeight);
+
+      expect(bst.inOrderTraversal()).toEqual([10, 15]);
     });
 
     test("delete() should remove a node with one left child", () => {

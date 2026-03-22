@@ -408,12 +408,49 @@ describe("Binary Search Tree (BST)", () => {
     });
 
     describe("Level-order Traversal (BFS)", () => {
-      test.todo(
-        "levelOrderTraversal() should return empty array for empty tree",
-      );
-      test.todo(
-        "levelOrderTraversal() should return correct level-order traversal",
-      );
+      test("levelOrderTraversal() should return empty array for empty tree", () => {
+        const bst = new BST();
+        expect(bst.levelOrderTraversal()).toEqual([]);
+      });
+
+      test("levelOrderTraversal() should return correct level-order traversal", () => {
+        //      10
+        //     /  \
+        //    5    15
+        //   / \   /
+        //  3   7 12
+        const bst = new BST(10, 5, 15, 3, 7, 12);
+        // Level-order: 10, 5, 15, 3, 7, 12
+        expect(bst.levelOrderTraversal()).toEqual([10, 5, 15, 3, 7, 12]);
+      });
+
+      test("levelOrderTraversal() should handle single node tree", () => {
+        const bst = new BST(42);
+        expect(bst.levelOrderTraversal()).toEqual([42]);
+      });
+
+      test("levelOrderTraversal(startingNode) should traverse from any node", () => {
+        //      10
+        //     /  \
+        //    5    15
+        //   / \   /
+        //  3   7 12
+        const bst = new BST(10, 5, 15, 3, 7, 12);
+
+        // From root
+        expect(bst.levelOrderTraversal(bst.root)).toEqual([
+          10, 5, 15, 3, 7, 12,
+        ]);
+
+        // From node 5
+        expect(bst.levelOrderTraversal(bst.root.left)).toEqual([5, 3, 7]);
+
+        // From node 15
+        expect(bst.levelOrderTraversal(bst.root.right)).toEqual([15, 12]);
+
+        // From leaf node
+        expect(bst.levelOrderTraversal(bst.root.left.left)).toEqual([3]);
+      });
     });
   });
 

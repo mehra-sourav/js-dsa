@@ -195,6 +195,31 @@ class BST {
       root.value,
     ];
   }
+
+  levelOrderTraversal(root = this.root) {
+    if (root === null) return [];
+
+    const results = [];
+
+    // Initializing queue with root
+    const queue = [root];
+
+    while (queue.length > 0) {
+      const currentNode = queue.shift();
+
+      results.push(currentNode.value);
+
+      if (currentNode.left !== null) {
+        queue.push(currentNode.left);
+      }
+
+      if (currentNode.right !== null) {
+        queue.push(currentNode.right);
+      }
+    }
+
+    return results;
+  }
 }
 
 module.exports = BST;

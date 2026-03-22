@@ -258,26 +258,87 @@ describe("Binary Search Tree (BST)", () => {
         // 1 -> 2 -> 3 -> 4 -> 5 (chain of 5 nodes)
         expect(bst.height()).toBe(5);
       });
+
+      test("height(startingNode) should return height from any node", () => {
+        //      10
+        //     /  \
+        //    5    15
+        //   / \   /
+        //  3   7 12
+        const bst = new BST(10, 5, 15, 3, 7, 12);
+
+        // Height from root = 3 (nodes: 10->5->3 or 10->5->7 or 10->15->12)
+        expect(bst.height(bst.root)).toBe(3);
+
+        // Height from node 5 = 2 (nodes: 5->3 or 5->7)
+        expect(bst.height(bst.root.left)).toBe(2);
+
+        // Height from node 15 = 2 (nodes: 15->12)
+        expect(bst.height(bst.root.right)).toBe(2);
+
+        // Height from leaf node 3 = 1 (just itself)
+        expect(bst.height(bst.root.left.left)).toBe(1);
+
+        // Height from leaf node 7 = 1 (just itself)
+        expect(bst.height(bst.root.left.right)).toBe(1);
+      });
+
+      test("height(null) should return 0", () => {
+        const bst = new BST(10, 5, 15);
+        expect(bst.height(null)).toBe(0);
+      });
     });
 
     describe("Depth", () => {
-      test("depth(value) should return depth of a node", () => {
-        //      10 (depth 0)
+      test("depth(startingNode, value) should return depth from starting node", () => {
+        //      10
         //     /  \
-        //    5    15 (depth 1)
-        //   /
-        //  3 (depth 2)
-        const bst = new BST(10, 5, 15, 3);
-        expect(bst.depth(10)).toBe(0);
-        expect(bst.depth(5)).toBe(1);
-        expect(bst.depth(15)).toBe(1);
-        expect(bst.depth(3)).toBe(2);
+        //    5    15
+        //   / \   /
+        //  3   7 12
+        const bst = new BST(10, 5, 15, 3, 7, 12);
+
+        // From root (10): depth of 10=0, 5=1, 15=1, 3=2, 7=2, 12=2
+        expect(bst.depth(bst.root, 10)).toBe(0);
+        expect(bst.depth(bst.root, 5)).toBe(1);
+        expect(bst.depth(bst.root, 15)).toBe(1);
+        expect(bst.depth(bst.root, 3)).toBe(2);
+        expect(bst.depth(bst.root, 7)).toBe(2);
+        expect(bst.depth(bst.root, 12)).toBe(2);
       });
 
-      test("depth(value) should return -1 for non-existent node", () => {
+      test("depth from non-root node should calculate relative depth", () => {
+        //      10
+        //     /  \
+        //    5    15
+        //   / \   /
+        //  3   7 12
+        const bst = new BST(10, 5, 15, 3, 7, 12);
+
+        // From node 5: depth of 5=0, 3=1, 7=1
+        expect(bst.depth(bst.root.left, 5)).toBe(0);
+        expect(bst.depth(bst.root.left, 3)).toBe(1);
+        expect(bst.depth(bst.root.left, 7)).toBe(1);
+
+        // From node 15: depth of 15=0, 12=1
+        expect(bst.depth(bst.root.right, 15)).toBe(0);
+        expect(bst.depth(bst.root.right, 12)).toBe(1);
+      });
+
+      test("depth should return -1 when value not found from starting node", () => {
+        //      10
+        //     /  \
+        //    5    15
         const bst = new BST(10, 5, 15);
-        expect(bst.depth(100)).toBe(-1);
-        expect(bst.depth(-50)).toBe(-1);
+
+        // From node 5, searching for 15 (not in 5's subtree)
+        expect(bst.depth(bst.root.left, 15)).toBe(-1);
+
+        // From node 15, searching for 5 (not in 15's subtree)
+        expect(bst.depth(bst.root.right, 5)).toBe(-1);
+
+        // From root, searching for non-existent value
+        expect(bst.depth(bst.root, 100)).toBe(-1);
       });
     });
   });

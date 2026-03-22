@@ -31,7 +31,7 @@ class BST {
     this.root = insertHelper(this.root, value);
   }
 
-  search(value) {
+  search(value, startingNode = this.root) {
     const searchHelper = (root, value) => {
       if (root === null) return null;
 
@@ -44,7 +44,7 @@ class BST {
       }
     };
 
-    return searchHelper(this.root, value);
+    return searchHelper(startingNode, value);
   }
 
   delete(value) {
@@ -138,21 +138,22 @@ class BST {
     return heightHelper(startingNode);
   }
 
-  depth(value) {
-    if (this.search(value) === null) return -1;
+  depth(startingNode, value) {
+    // if (this.search(value, startingNode) === null) return -1;
 
-    // const depthHelper = (root) => {
-    //   if (root === null) {
-    //     return 0;
-    //   }
+    const depthHelper = (root, value, depthSoFar) => {
+      if (root === null) return -1;
 
-    //   const leftHeight = heightHelper(root.left);
-    //   const rightHeight = heightHelper(root.right);
+      // If node found with value
+      if (root.value === value) return depthSoFar;
+      else if (value < root.value) {
+        return depthHelper(root.left, value, depthSoFar + 1);
+      } else {
+        return depthHelper(root.right, value, depthSoFar + 1);
+      }
+    };
 
-    //   return 1 + Math.max(leftHeight, rightHeight);
-    // };
-
-    // return depthHelper(this.root);
+    return depthHelper(startingNode, value, 0);
   }
 
   size() {

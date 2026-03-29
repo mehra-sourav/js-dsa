@@ -273,7 +273,7 @@ describe("Red Black Tree (RBT)", () => {
       expect(rbt.root.left.right.color).toBe("RED");
     });
 
-    test.only("insertFixup should right-then-left rotate for Right-Left triangle case", () => {
+    test("insertFixup should right-then-left rotate for Right-Left triangle case", () => {
       const rbt = new RBT(30, 10, 40, 50);
 
       expect(rbt.root.value).toBe(30);
@@ -282,22 +282,22 @@ describe("Red Black Tree (RBT)", () => {
       expect(rbt.root.left.color).toBe("BLACK");
       expect(rbt.root.right.value).toBe(40);
       expect(rbt.root.right.color).toBe("BLACK");
-      expect(rbt.root.left.left.value).toBe(50);
-      expect(rbt.root.left.left.color).toBe("RED");
+      expect(rbt.root.right.right.value).toBe(50);
+      expect(rbt.root.right.right.color).toBe("RED");
 
       rbt.insert(45);
 
-      //   expect(rbt.root.value).toBe(30);
-      //   expect(rbt.root.color).toBe("BLACK");
-      //   expect(rbt.root.left.value).toBe(10);
-      //   expect(rbt.root.left.color).toBe("BLACK");
-      //   expect(rbt.root.right.value).toBe(45);
-      //   expect(rbt.root.right.color).toBe("BLACK");
+      expect(rbt.root.value).toBe(30);
+      expect(rbt.root.color).toBe("BLACK");
+      expect(rbt.root.left.value).toBe(10);
+      expect(rbt.root.left.color).toBe("BLACK");
+      expect(rbt.root.right.value).toBe(45);
+      expect(rbt.root.right.color).toBe("BLACK");
 
-      //   expect(rbt.root.right.left.value).toBe(40);
-      //   expect(rbt.root.right.left.color).toBe("RED");
-      //   expect(rbt.root.right.right.value).toBe(50);
-      //   expect(rbt.root.right.right.color).toBe("RED");
+      expect(rbt.root.right.left.value).toBe(40);
+      expect(rbt.root.right.left.color).toBe("RED");
+      expect(rbt.root.right.right.value).toBe(50);
+      expect(rbt.root.right.right.color).toBe("RED");
     });
   });
 });

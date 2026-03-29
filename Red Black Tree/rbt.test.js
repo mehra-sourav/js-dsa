@@ -300,4 +300,91 @@ describe("Red Black Tree (RBT)", () => {
       expect(rbt.root.right.right.color).toBe("RED");
     });
   });
+
+  describe("Search", () => {
+    test("should find values that exist in the tree", () => {
+      const rbt = new RBT(10, 5, 15, 3, 7, 12, 20);
+
+      expect(rbt.search(10)).toBe(true);
+      expect(rbt.search(5)).toBe(true);
+      expect(rbt.search(15)).toBe(true);
+      expect(rbt.search(3)).toBe(true);
+      expect(rbt.search(20)).toBe(true);
+    });
+
+    test("should return null for non-existent values", () => {
+      const rbt = new RBT(10, 5, 15);
+
+      expect(rbt.search(100)).toBe(null);
+      expect(rbt.search(-50)).toBe(null);
+      expect(rbt.search(7)).toBe(null);
+
+      expect(rbt.search(5, rbt.root.right)).toBe(null); // 5 not in right subtree (node 15)
+      expect(rbt.search(15, rbt.root.right)).toBe(true); // Found in right subtree
+    });
+
+    test("should return null when searching empty tree", () => {
+      const rbt = new RBT();
+      expect(rbt.search(10)).toBe(null);
+    });
+
+    test("findMin() should return the minimum value", () => {
+      const rbt = new RBT(10, 5, 15, 3, 7, 12, 20);
+      expect(rbt.findMin()).toBe(3);
+    });
+
+    test("findMax() should return the maximum value", () => {
+      const rbt = new RBT(10, 5, 15, 3, 7, 12, 20);
+      expect(rbt.findMax()).toBe(20);
+    });
+
+    test("findMin() should return null for empty tree", () => {
+      const rbt = new RBT();
+      expect(rbt.findMin()).toBe(null);
+    });
+
+    test("findMax() should return null for empty tree", () => {
+      const rbt = new RBT();
+      expect(rbt.findMax()).toBe(null);
+    });
+  });
+
+  describe.skip("Deletion", () => {
+    let rbt;
+
+    // Creating a base Red Black Tree before deletion
+    beforeEach(() => {
+      rbt = new RBT(5, 10, 20, 30, 40, 50, 60, 70, 75, 80, 90);
+    });
+
+    describe("Red Nodes", () => {
+      test.only("should remove red leaf without deleteFixup", () => {
+        expect(rbt.root.color).toBe("BLACK");
+
+        // Checking if base RBT is as expected
+        expect(rbt.root.value).toBe(30);
+        expect(rbt.root.color).toBe("BLACK");
+        expect(rbt.root.left.value).toBe(10);
+        expect(rbt.root.left.color).toBe("BLACK");
+        expect(rbt.root.right.value).toBe(50);
+        expect(rbt.root.right.color).toBe("BLACK");
+        expect(rbt.root.left.left.value).toBe(5);
+        expect(rbt.root.left.left.color).toBe("BLACK");
+        expect(rbt.root.left.right.value).toBe(20);
+        expect(rbt.root.left.right.color).toBe("BLACK");
+        expect(rbt.root.right.left.value).toBe(40);
+        expect(rbt.root.right.left.color).toBe("BLACK");
+        expect(rbt.root.right.right.value).toBe(70);
+        expect(rbt.root.right.right.color).toBe("RED");
+        expect(rbt.root.right.right.left.value).toBe(60);
+        expect(rbt.root.right.right.left.color).toBe("BLACK");
+        expect(rbt.root.right.right.right.value).toBe(80);
+        expect(rbt.root.right.right.right.color).toBe("BLACK");
+        expect(rbt.root.right.right.right.left.value).toBe(75);
+        expect(rbt.root.right.right.right.left.color).toBe("RED");
+        expect(rbt.root.right.right.right.right.value).toBe(90);
+        expect(rbt.root.right.right.right.right.color).toBe("RED");
+      });
+    });
+  });
 });

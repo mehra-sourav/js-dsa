@@ -42,6 +42,22 @@ class RBT {
     this.root.color = "BLACK";
   }
 
+  search(value, startingNode = this.root) {
+    const searchHelper = (root, value) => {
+      if (root === null) return null;
+
+      if (root.value === value) {
+        return true;
+      } else if (value < root.value) {
+        return searchHelper(root.left, value);
+      } else {
+        return searchHelper(root.right, value);
+      }
+    };
+
+    return searchHelper(startingNode, value);
+  }
+
   _insertFixup(node) {
     // Return early for root node as there are no parents of root node
     if (this.root === node) return;
@@ -50,30 +66,29 @@ class RBT {
     const uncleNode = this._getUncleNode(node);
 
     // Case 1: Parent and uncle are both red;
-    if (parentNode?.color === "RED" && uncleNode?.color === "RED") {
-      // Switch color of parent, uncle and grandparent
+    if (
+      node?.color === "RED" &&
+      parentNode?.color === "RED" &&
+      uncleNode?.color === "RED"
+    ) {
       let localNode = node,
         parent = parentNode,
         uncle = uncleNode,
         grandParent = this._getGrandParentNode(localNode);
 
-      //  Switch color of parent, uncle and grandparent (as long as it is not root) up the tree
-      while (parent?.color === "RED" && uncle?.color === "RED") {
-        this._switchColor(parent);
-        this._switchColor(uncle);
+      // Switch color of parent, uncle and grandparent
+      this._switchColor(parent);
+      this._switchColor(uncle);
 
-        if (this.root !== grandParent) {
-          this._switchColor(grandParent);
-        }
-
-        localNode = parent;
-        parent = this._getParentNode(localNode);
-        uncle = this._getUncleNode(localNode);
-        grandParent = this._getGrandParentNode(localNode);
+      if (this.root !== grandParent) {
+        this._switchColor(grandParent);
       }
+
+      this._insertFixup(grandParent);
     }
     // Case 2: Parent is red and uncle is black or empty
     else if (
+      node?.color === "RED" &&
       parentNode?.color === "RED" &&
       (uncleNode === null || uncleNode?.color === "BLACK")
     ) {
@@ -171,6 +186,10 @@ class RBT {
         parent.right = leftChild;
       }
     }
+    // Parent is null when the node passed is the root
+    else {
+      this.root = leftChild;
+    }
   }
 
   _leftRotate(node) {
@@ -202,6 +221,10 @@ class RBT {
       } else {
         parent.right = rightChild;
       }
+    }
+    // Parent is null when the node passed is the root
+    else {
+      this.root = rightChild;
     }
   }
 
@@ -242,6 +265,30 @@ class RBT {
 
   size() {
     return this.nodeCount;
+  }
+
+  findMin() {
+    if (this.root === null) return null;
+
+    let temp = this.root;
+
+    while (temp?.left !== null) {
+      temp = temp.left;
+    }
+
+    return temp.value;
+  }
+
+  findMax() {
+    if (this.root === null) return null;
+
+    let temp = this.root;
+
+    while (temp?.right !== null) {
+      temp = temp.right;
+    }
+
+    return temp.value;
   }
 }
 

@@ -349,12 +349,50 @@ describe("Red Black Tree (RBT)", () => {
     });
   });
 
-  describe.skip("Deletion", () => {
+  describe.only("Deletion", () => {
     let rbt;
 
     // Creating a base Red Black Tree before deletion
     beforeEach(() => {
       rbt = new RBT(5, 10, 20, 30, 40, 50, 60, 70, 75, 80, 90);
+    });
+
+    describe.only("Helper function - returns correct deleted nodes", () => {
+      test("returns correct after deleting leaf node", () => {
+        const tree = new RBT(1, 2, 3);
+
+        const [_, deletedNode] = tree._deleteHelper(tree.root, 1);
+        expect(deletedNode.value).toBe(1);
+
+        const [_2, deletedNode2] = tree._deleteHelper(tree.root, 3);
+        expect(deletedNode2.value).toBe(3);
+      });
+
+      test("returns correct node when deleting node with only left child", () => {
+        const tree = new RBT(1, 2, 3, -1);
+
+        const [_, deletedNode] = tree._deleteHelper(tree.root, 1);
+        expect(deletedNode.value).toBe(1);
+      });
+
+      test.only("returns correct node when deleting node with one child", () => {
+        const tree = new RBT(1, 2, 3, 4); // 3 has right child 4
+        const [_, deletedNode] = tree._deleteHelper(tree.root, 3);
+        expect(deletedNode.value).toBe(3);
+      });
+
+      test("returns correct after deleting non-leaf node", () => {
+        const tree = new RBT(1, 2, 3);
+
+        const [_, deletedNode] = tree._deleteHelper(tree.root, 2);
+        expect(deletedNode.value).toBe(3);
+      });
+
+      test("returns null when deleting empty tree", () => {
+        const tree = new RBT();
+        const [_, deletedNode] = tree._deleteHelper(tree.root, 99);
+        expect(deletedNode).toBe(null);
+      });
     });
 
     describe("Red Nodes", () => {

@@ -58,6 +58,65 @@ class RBT {
     return searchHelper(startingNode, value);
   }
 
+  delete(value) {
+    if (this.search(value) === null) return false;
+
+    const [newRoot, deletedNode] = deleteHelper(this.root, value);
+    this.root = newRoot;
+    this.nodeCount--;
+
+    // Fixing colors of ancestor nodes
+    this._deleteFixup(deletedNode);
+
+    return true;
+  }
+
+  _deleteHelper(root, value) {
+    if (root == null) {
+      return [root, null];
+    }
+
+    let deletedNode;
+
+    if (value < root.value) {
+      const [newRoot, delNode] = this._deleteHelper(root.left, value);
+      root.left = newRoot;
+      deletedNode = delNode;
+    } else if (root.value < value) {
+      const [newRoot, delNode] = this._deleteHelper(root.right, value);
+      root.right = newRoot;
+      deletedNode = delNode;
+    } else {
+      // If the node is a leaf node
+      if (root.left === null && root.right === null) {
+        return [null, root];
+      } else if (root.left !== null && root.right === null) {
+        deletedNode = root;
+        root.left.parent = root.parent;
+        root = root.left;
+      } else if (root.left === null && root.right !== null) {
+        deletedNode = root;
+        root.right.parent = root.parent;
+        root = root.right;
+      } else {
+        const successorNode = this._getSuccessorNode(root.right);
+
+        // Replacing current node's value with the successor node's value
+        root.value = successorNode.value;
+
+        // Deleting successor node
+        const [newRoot, delNode] = this._deleteHelper(
+          root.right,
+          successorNode.value,
+        );
+        root.right = newRoot;
+        deletedNode = delNode;
+      }
+    }
+
+    return [root, deletedNode];
+  }
+
   _insertFixup(node) {
     // Return early for root node as there are no parents of root node
     if (this.root === node) return;
@@ -227,6 +286,15 @@ class RBT {
       this.root = rightChild;
     }
   }
+  _getSuccessorNode(node) {
+    let temp = node;
+
+    while (temp.left) {
+      temp = temp.left;
+    }
+
+    return temp;
+  }
 
   search(value, startingNode = this.root) {
     const searchHelper = (root, value) => {
@@ -289,6 +357,90 @@ class RBT {
     }
 
     return temp.value;
+  }
+
+  visualize() {
+    if (this.root === null) {
+      console.log("Empty tree");
+      return;
+    }
+
+    const lines = [];
+    const height = this.height();
+
+    // BFS to collect nodes level by level
+    const queue = [{ node: this.root, level: 0, pos: Math.pow(2, height - 1) }];
+    const nodesByLevel = new Map();
+
+    while (queue.length > 0) {
+      const { node, level, pos } = queue.shift();
+
+      if (!nodesByLevel.has(level)) {
+        nodesByLevel.set(level, []);
+      }
+      nodesByLevel.get(level).push({ node, pos });
+
+      if (node.left) {
+        queue.push({
+          node: node.left,
+          level: level + 1,
+          pos: pos - Math.pow(2, height - level - 2),
+        });
+      }
+      if (node.right) {
+        queue.push({
+          node: node.right,
+          level: level + 1,
+          pos: pos + Math.pow(2, height - level - 2),
+        });
+      }
+    }
+
+    // Build output
+    const maxWidth = Math.pow(2, height) * 3;
+    for (let level = 0; level < height; level++) {
+      const nodes = nodesByLevel.get(level) || [];
+      const line = new Array(maxWidth).fill(" ");
+
+      for (const { node, pos } of nodes) {
+        const colorChar = node.color === "RED" ? "R" : "B";
+        const str = `${node.value}${colorChar}`;
+        const start = Math.floor(pos - str.length / 2);
+        for (let i = 0; i < str.length; i++) {
+          if (start + i >= 0 && start + i < maxWidth) {
+            line[start + i] = str[i];
+          }
+        }
+      }
+
+      lines.push(line.join(""));
+    }
+
+    console.log(lines.join("\n"));
+  }
+
+  printTree(node = this.root, prefix = "", isLeft = true) {
+    if (node === null) {
+      console.log(`${prefix}${isLeft ? "└── " : "┌── "}null(B)`);
+      return;
+    }
+
+    const color = node.color === "RED" ? "R" : "B";
+    const parentVal = node.parent ? node.parent.value : "null";
+    const arrow = isLeft ? "└── " : "┌── ";
+
+    console.log(
+      `${prefix}${arrow}${node.value}(${color})[parent:${parentVal}]`,
+    );
+
+    const newPrefix = prefix + (isLeft ? "    " : "│   ");
+
+    if (node.right) {
+      this.printTree(node.right, newPrefix, false);
+    }
+    if (node.left) {
+      this.printTree(node.left, newPrefix, true);
+    }
   }
 }
 

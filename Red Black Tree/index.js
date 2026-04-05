@@ -42,79 +42,266 @@ class RBT {
     this.root.color = "BLACK";
   }
 
-  search(value, startingNode = this.root) {
-    const searchHelper = (root, value) => {
-      if (root === null) return null;
-
-      if (root.value === value) {
-        return true;
-      } else if (value < root.value) {
-        return searchHelper(root.left, value);
-      } else {
-        return searchHelper(root.right, value);
-      }
-    };
-
-    return searchHelper(startingNode, value);
-  }
-
   delete(value) {
-    if (this.search(value) === null) return false;
+    if (!this.search(value)) return false;
 
-    const [newRoot, deletedNode] = deleteHelper(this.root, value);
+    const [newRoot, deletedNode, replacementNode] = this._deleteHelper(
+      this.root,
+      value,
+    );
     this.root = newRoot;
     this.nodeCount--;
 
     // Fixing colors of ancestor nodes
-    this._deleteFixup(deletedNode);
+    this._deleteFixup(deletedNode, replacementNode);
 
     return true;
   }
 
   _deleteHelper(root, value) {
     if (root == null) {
-      return [root, null];
+      return [root, null, null];
     }
 
-    let deletedNode;
+    let deletedNode, replacementNode;
 
     if (value < root.value) {
-      const [newRoot, delNode] = this._deleteHelper(root.left, value);
+      const [newRoot, delNode, replNode] = this._deleteHelper(root.left, value);
       root.left = newRoot;
       deletedNode = delNode;
+      replacementNode = replNode;
     } else if (root.value < value) {
-      const [newRoot, delNode] = this._deleteHelper(root.right, value);
+      const [newRoot, delNode, replNode] = this._deleteHelper(
+        root.right,
+        value,
+      );
       root.right = newRoot;
       deletedNode = delNode;
+      replacementNode = replNode;
     } else {
+      const parent = this._getParentNode(root);
       // If the node is a leaf node
       if (root.left === null && root.right === null) {
-        return [null, root];
+        return [
+          null,
+          root,
+          {
+            parent: parent,
+            isLeft: parent?.left === root,
+            sibling: this._getSiblingNode(root),
+          },
+        ];
       } else if (root.left !== null && root.right === null) {
+        const originalRootColor = root.color;
         deletedNode = root;
+        // If replacment node is null, then the properties of current node's relations are needed
+        replacementNode = root.left ?? {
+          parent: parent,
+          isLeft: parent.left === root,
+          sibling: this._getSiblingNode(root),
+        };
         root.left.parent = root.parent;
         root = root.left;
+        root.color = originalRootColor;
       } else if (root.left === null && root.right !== null) {
+        const originalRootColor = root.color;
         deletedNode = root;
+        // If replacment node is null, then the properties of current node's relations are needed
+        replacementNode = root.right ?? {
+          parent: parent,
+          isLeft: parent?.left === root,
+          sibling: this._getSiblingNode(root),
+        };
         root.right.parent = root.parent;
         root = root.right;
+        root.color = originalRootColor;
       } else {
         const successorNode = this._getSuccessorNode(root.right);
+        const originalColor = root.color;
 
         // Replacing current node's value with the successor node's value
         root.value = successorNode.value;
 
         // Deleting successor node
-        const [newRoot, delNode] = this._deleteHelper(
+        const [newRoot, delNode, replNode] = this._deleteHelper(
           root.right,
           successorNode.value,
         );
+
+        // The replacement node should have the original deleted node's color
+        // if (originalColor === "RED") {
+        //   // No fixup needed for RED deletion
+        //   return [root, null, replNode]; // Pass null as deletedNode to skip fixup
+        // }
+
         root.right = newRoot;
         deletedNode = delNode;
+        replacementNode = replNode;
       }
     }
 
-    return [root, deletedNode];
+    return [root, deletedNode, replacementNode];
+  }
+
+  _deleteFixup(node, replacementNode) {
+    if (node === null) return;
+
+    // Return if deleted node was red
+    if (node.color === "RED") return;
+
+    // No fixup needed if root is null (tree became empty)
+    if (this.root === null) return;
+
+    // If replacement is a real tree node (not synthetic),
+    // it was a RED child that absorbed the black. No fixup needed.
+    if (replacementNode instanceof RBNode) return;
+
+    const oldParent = replacementNode?.parent;
+    const sibling = replacementNode.isLeft ? oldParent?.right : oldParent?.left;
+    const leftNibling = sibling?.left;
+    const rightNibling = sibling?.right;
+    let redColoredNilbing = null;
+
+    if (replacementNode.isLeft) {
+      // Deleted was left child, sibling is right → prefer right (far) nephew
+      if (rightNibling?.color === "RED") redColoredNilbing = rightNibling;
+      else if (leftNibling?.color === "RED") redColoredNilbing = leftNibling;
+    } else {
+      // Deleted was right child, sibling is left → prefer left (far) nephew
+      if (leftNibling?.color === "RED") redColoredNilbing = leftNibling;
+      else if (rightNibling?.color === "RED") redColoredNilbing = rightNibling;
+    }
+
+    // Case 1: If deleted node is black, its sibling is red
+    if (node?.color === "BLACK" && sibling?.color === "RED") {
+      // L Rotation
+      if (oldParent?.left === sibling) {
+        this._rightRotate(oldParent);
+
+        // Sibling is now parent
+        const newParent = sibling;
+
+        newParent.color = "BLACK";
+
+        // Old parent, now right of deleted node's sibling becomes red
+        if (newParent?.right) newParent.right.color = "RED";
+      }
+      // R Rotation
+      else if (oldParent?.right === sibling) {
+        this._leftRotate(oldParent);
+
+        // Sibling is now parent
+        const newParent = sibling;
+
+        newParent.color = "BLACK";
+
+        // Old parent, now left of deleted node's sibling becomes red
+        if (newParent?.left) newParent.left.color = "RED";
+      }
+
+      replacementNode.parent = oldParent;
+      replacementNode.sibling =
+        this._getSiblingNode(oldParent) ??
+        (replacementNode.isLeft ? oldParent.right : oldParent.left);
+      this._deleteFixup(node, replacementNode);
+    }
+
+    // Case 2: If deleted node is black, its sibling is also black and its niblings are also black/NIL
+    else if (
+      node?.color === "BLACK" &&
+      sibling?.color === "BLACK" &&
+      !redColoredNilbing
+    ) {
+      // Converting sibling to red
+      sibling.color = "RED";
+
+      // If parent was RED, it absorbs the double-black (becomes BLACK)
+      // If parent was BLACK, propagate double-black upward
+      if (oldParent.color === "RED") {
+        oldParent.color = "BLACK";
+      } else {
+        // Parent was BLACK, propagate double-black upward
+        const grandParent = this._getParentNode(oldParent);
+        const newReplacementNode = {
+          parent: grandParent,
+          isLeft: grandParent?.left === oldParent,
+          sibling: this._getSiblingNode(oldParent),
+        };
+        this._deleteFixup(oldParent, newReplacementNode);
+      }
+    }
+    // Case 3: If deleted node is black, its sibling is also black and any of its nibling is red
+    else if (
+      node?.color === "BLACK" &&
+      sibling?.color === "BLACK" &&
+      redColoredNilbing
+    ) {
+      // Perform rotation
+
+      // LL Rotation
+      if (oldParent?.left === sibling && sibling?.left === redColoredNilbing) {
+        this._rightRotate(oldParent);
+
+        // Sibling is now parent
+        const newParent = sibling;
+
+        newParent.color = oldParent.color;
+
+        if (newParent?.left) newParent.left.color = "BLACK";
+
+        if (newParent?.right) newParent.right.color = "BLACK";
+      }
+      // RR Rotation
+      else if (
+        oldParent?.right === sibling &&
+        sibling?.right === redColoredNilbing
+      ) {
+        this._leftRotate(oldParent);
+
+        // Sibling is now parent
+        const newParent = sibling;
+
+        newParent.color = oldParent.color;
+
+        if (newParent?.left) newParent.left.color = "BLACK";
+
+        if (newParent?.right) newParent.right.color = "BLACK";
+      }
+      // LR Rotation
+      else if (
+        oldParent?.left === sibling &&
+        sibling?.right === redColoredNilbing
+      ) {
+        this._leftRotate(sibling);
+        this._rightRotate(oldParent);
+
+        // Nibling is the new parent
+        const newParent = redColoredNilbing;
+
+        newParent.color = oldParent.color;
+
+        if (newParent?.left) newParent.left.color = "BLACK";
+
+        if (newParent?.right) newParent.right.color = "BLACK";
+      }
+      // RL Rotation
+      else if (
+        oldParent?.right === sibling &&
+        sibling?.left === redColoredNilbing
+      ) {
+        this._rightRotate(sibling);
+        this._leftRotate(oldParent);
+
+        // Nibling is the new parent
+        const newParent = redColoredNilbing;
+
+        newParent.color = oldParent.color;
+
+        if (newParent?.left) newParent.left.color = "BLACK";
+
+        if (newParent?.right) newParent.right.color = "BLACK";
+      }
+    }
   }
 
   _insertFixup(node) {
@@ -159,20 +346,34 @@ class RBT {
       // LL Rotation
       if (grandParent?.left === parent && parent?.left === localNode) {
         this._rightRotate(grandParent);
+        grandParent.color = "RED";
+        // Parent remains parent
+        parent.color = "BLACK";
       }
       // RR Rotation
       else if (grandParent?.right === parent && parent?.right === localNode) {
         this._leftRotate(grandParent);
+        grandParent.color = "RED";
+        // Parent remains parent
+        parent.color = "BLACK";
       }
       // LR Rotation
       else if (grandParent?.left === parent && parent?.right === localNode) {
         this._leftRotate(parent);
         this._rightRotate(grandParent);
+        grandParent.color = "RED";
+
+        // Node just inserted becomes the new parent, hence the recolor
+        localNode.color = "BLACK";
       }
       // RL Rotation
       else if (grandParent?.right === parent && parent?.left === localNode) {
         this._rightRotate(parent);
         this._leftRotate(grandParent);
+        grandParent.color = "RED";
+
+        // Node just inserted becomes the new parent, hence the recolor
+        localNode.color = "BLACK";
       }
     }
   }
@@ -205,6 +406,32 @@ class RBT {
     return grandParent.left;
   }
 
+  _getSiblingNode(node) {
+    const parent = this._getParentNode(node);
+
+    // Node doesn't have a parent
+    if (!parent) return null;
+
+    // Node is a left child, so sibling is the right child
+    if (parent.left === node) return parent.right;
+
+    // Node is a right child, so sibling is the left child
+    return parent.left;
+  }
+
+  _getNiblingNode(node, left = true) {
+    const sibling = this._getSiblingNode(node);
+
+    // Node doesn't have a sibling
+    if (!sibling) return null;
+
+    // Return sibling's left child
+    if (left) return sibling.left;
+
+    // Return sibling's right child
+    return sibling.right;
+  }
+
   _switchColor(node) {
     if (!node) return;
 
@@ -235,7 +462,7 @@ class RBT {
     [leftChild.parent, node.parent] = [node.parent, leftChild];
 
     // Switching colors
-    [leftChild.color, node.color] = [node.color, leftChild.color];
+    // [leftChild.color, node.color] = [node.color, leftChild.color];
 
     // Assigning the node as a child to it's own parent
     if (parent) {
@@ -271,7 +498,7 @@ class RBT {
     [rightChild.parent, node.parent] = [node.parent, rightChild];
 
     // Switching colors
-    [rightChild.color, node.color] = [node.color, rightChild.color];
+    // [rightChild.color, node.color] = [node.color, rightChild.color];
 
     // Assigning the node as a child to it's own parent
     if (parent) {
@@ -296,12 +523,12 @@ class RBT {
     return temp;
   }
 
-  search(value, startingNode = this.root) {
+  search(value, startingNode = this.root, returnBoolean = true) {
     const searchHelper = (root, value) => {
       if (root === null) return null;
 
       if (root.value === value) {
-        return true;
+        return root;
       } else if (value < root.value) {
         return searchHelper(root.left, value);
       } else {
@@ -309,8 +536,25 @@ class RBT {
       }
     };
 
-    return searchHelper(startingNode, value);
+    const result = searchHelper(startingNode, value);
+    return returnBoolean ? !!result : result;
   }
+
+  //  search(value, startingNode = this.root) {
+  //   const searchHelper = (root, value) => {
+  //     if (root === null) return null;
+
+  //     if (root.value === value) {
+  //       return true;
+  //     } else if (value < root.value) {
+  //       return searchHelper(root.left, value);
+  //     } else {
+  //       return searchHelper(root.right, value);
+  //     }
+  //   };
+
+  //   return searchHelper(startingNode, value);
+  // }
 
   height(startingNode = this.root) {
     const heightHelper = (root) => {
@@ -359,6 +603,33 @@ class RBT {
     return temp.value;
   }
 
+  isTreeValid() {
+    return (
+      this._hasNoRedRedViolations(this.root) &&
+      this._getBlackHeight(this.root) !== -1
+    );
+  }
+
+  _hasNoRedRedViolations(root) {
+    const check = (node) => {
+      if (!node) return true;
+      if (node.color === "RED") {
+        if (node.left?.color === "RED" || node.right?.color === "RED")
+          return false;
+      }
+      return check(node.left) && check(node.right);
+    };
+    return check(root);
+  }
+
+  _getBlackHeight(node) {
+    if (!node) return 1; // NIL is black
+    const left = this._getBlackHeight(node.left);
+    const right = this._getBlackHeight(node.right);
+    if (left !== right) return -1; // violation
+    return left + (node.color === "BLACK" ? 1 : 0);
+  }
+
   visualize() {
     if (this.root === null) {
       console.log("Empty tree");
@@ -366,10 +637,11 @@ class RBT {
     }
 
     const lines = [];
-    const height = this.height();
+    const treeHeight = this.height();
 
-    // BFS to collect nodes level by level
-    const queue = [{ node: this.root, level: 0, pos: Math.pow(2, height - 1) }];
+    const queue = [
+      { node: this.root, level: 0, pos: Math.pow(2, treeHeight - 1) },
+    ];
     const nodesByLevel = new Map();
 
     while (queue.length > 0) {
@@ -384,21 +656,20 @@ class RBT {
         queue.push({
           node: node.left,
           level: level + 1,
-          pos: pos - Math.pow(2, height - level - 2),
+          pos: pos - Math.pow(2, treeHeight - level - 2),
         });
       }
       if (node.right) {
         queue.push({
           node: node.right,
           level: level + 1,
-          pos: pos + Math.pow(2, height - level - 2),
+          pos: pos + Math.pow(2, treeHeight - level - 2),
         });
       }
     }
 
-    // Build output
-    const maxWidth = Math.pow(2, height) * 3;
-    for (let level = 0; level < height; level++) {
+    const maxWidth = Math.pow(2, treeHeight) * 3;
+    for (let level = 0; level < treeHeight; level++) {
       const nodes = nodesByLevel.get(level) || [];
       const line = new Array(maxWidth).fill(" ");
 
@@ -412,10 +683,8 @@ class RBT {
           }
         }
       }
-
       lines.push(line.join(""));
     }
-
     console.log(lines.join("\n"));
   }
 
@@ -434,13 +703,8 @@ class RBT {
     );
 
     const newPrefix = prefix + (isLeft ? "    " : "│   ");
-
-    if (node.right) {
-      this.printTree(node.right, newPrefix, false);
-    }
-    if (node.left) {
-      this.printTree(node.left, newPrefix, true);
-    }
+    if (node.right) this.printTree(node.right, newPrefix, false);
+    if (node.left) this.printTree(node.left, newPrefix, true);
   }
 }
 

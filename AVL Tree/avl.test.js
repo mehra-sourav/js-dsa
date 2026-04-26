@@ -152,6 +152,144 @@ describe("AVL Tree", () => {
 
         test.todo("should balance node correctly after multi-level node balancing")
 
-        
+
     })
+
+    describe.only("Deletion", () => {
+        test("delete() should remove a leaf node", () => {
+            const tree = new AVLTree(10, 5, 15);
+            const initialSize = tree.size();
+            const initialHeight = tree.height();
+
+            expect(tree.delete(5)).toBe(true);
+            expect(tree.search(5)).toBe(null);
+            expect(tree.search(10)).toBe(true);
+            expect(tree.search(15)).toBe(true);
+
+            expect(tree.size()).toBe(initialSize - 1);
+            expect(tree.height()).toBe(initialHeight);
+
+            expect(tree.inOrderTraversal()).toEqual([10, 15]);
+        });
+
+        test("delete() should remove a node with one left child", () => {
+            //      10
+            //     /
+            //    5
+            //   /
+            //  3
+            const tree = new AVLTree(10, 5, 3);
+            expect(tree.delete(3)).toBe(true);
+            expect(tree.search(3)).toBe(null);
+            expect(tree.search(5)).toBe(true);
+            expect(tree.search(10)).toBe(true);
+            expect(tree.inOrderTraversal()).toEqual([5, 10]);
+        });
+
+        test("delete() should remove a node with one right child", () => {
+            //   10
+            //     \
+            //      15
+            //        \
+            //         20
+            const tree = new AVLTree(10, 15, 20);
+            expect(tree.delete(15)).toBe(true);
+            expect(tree.search(15)).toBe(null);
+            expect(tree.search(20)).toBe(true);
+            expect(tree.search(10)).toBe(true);
+            expect(tree.inOrderTraversal()).toEqual([10, 20]);
+        });
+
+        test("delete() should remove a node with two children", () => {
+            //      10
+            //     /  \
+            //    5    15
+            //   / \   /
+            //  3   7 12
+            const tree = new AVLTree(10, 5, 15, 3, 7, 12);
+            expect(tree.delete(5)).toBe(true);
+            expect(tree.search(5)).toBe(null);
+            // In-order should still be sorted
+            expect(tree.inOrderTraversal()).toEqual([3, 7, 10, 12, 15]);
+        });
+
+        test("delete() should remove the root node", () => {
+            const tree = new AVLTree(10, 5, 15);
+            expect(tree.delete(10)).toBe(true);
+            expect(tree.search(10)).toBe(null);
+            expect(tree.search(5)).toBe(true);
+            expect(tree.search(15)).toBe(true);
+            expect(tree.inOrderTraversal()).toEqual([5, 15]);
+        });
+
+        test("delete() should handle deleting from empty tree", () => {
+            const tree = new AVLTree();
+            expect(tree.delete(10)).toBe(false);
+        });
+
+        test("delete() should return false when deleting non-existent value", () => {
+            const tree = new AVLTree(10, 5, 15);
+            expect(tree.delete(100)).toBe(false);
+            expect(tree.delete(-50)).toBe(false);
+        });
+
+        test.only("delete() should maintain AVLTree property after deletion", () => {
+            const isTreeBalanced = () => {
+                if (!this.root) return true;
+
+                const stack = [];
+                const heights = new Map();
+                let node = this.root;
+
+                while (node || stack.length) {
+                    // Go as far left as possible
+                    while (node) {
+                        stack.push(node);
+                        node = node.left;
+                    }
+
+                    node = stack[stack.length - 1];
+
+                    // If right child exists and hasn't been processed yet, go right
+                    if (node.right && !heights.has(node.right)) {
+                        node = node.right;
+                        continue;
+                    }
+
+                    stack.pop();
+
+                    const leftHeight = heights.get(node.left) ?? 0;
+                    const rightHeight = heights.get(node.right) ?? 0;
+
+                    if (Math.abs(leftHeight - rightHeight) > 1) return false;
+
+                    heights.set(node, 1 + Math.max(leftHeight, rightHeight));
+                    node = null;
+                }
+
+                return true;
+            }
+
+            const tree = new AVLTree(50, 30, 70, 20, 40, 60, 80);
+            tree.delete(30);
+            tree.delete(70);
+            tree.delete(50);
+
+            // Check in-order is still sorted
+            const inOrder = tree.inOrderTraversal();
+            expect(inOrder).toEqual([20, 40, 60, 80]);
+
+            // Verify BST property: each element < next element
+            for (let i = 0; i < inOrder.length - 1; i++) {
+                expect(inOrder[i]).toBeLessThan(inOrder[i + 1]);
+            }
+
+            tree.delete(80);
+            console.log('here')
+
+            // Verify AVL Balancing property
+            const treeBalanced = isTreeBalanced();
+            expect(treeBalanced).toBe(true);
+        });
+    });
 })
